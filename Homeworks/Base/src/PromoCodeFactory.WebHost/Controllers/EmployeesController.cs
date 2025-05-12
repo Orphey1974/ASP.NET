@@ -70,5 +70,20 @@ namespace PromoCodeFactory.WebHost.Controllers
 
             return employeeModel;
         }
+        
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(id);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            await _employeeRepository.DeleteAsync(employee);
+
+            return NoContent();
+        }
     }
 }
