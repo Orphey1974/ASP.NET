@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain;
+
 namespace PromoCodeFactory.DataAccess.Repositories
 {
     public class InMemoryRepository<T>: IRepository<T> where T: BaseEntity
@@ -15,15 +16,14 @@ namespace PromoCodeFactory.DataAccess.Repositories
         {
             _data = new ConcurrentDictionary<Guid, T>();
 
-            if (data != null)
-            {
-                foreach (var item in data)
-                {
-                    if (item.Id == Guid.Empty)
-                        item.Id = Guid.NewGuid();
+            if (data == null) return;
 
-                    _data.TryAdd(item.Id, item);
-                }
+            foreach (var item in data)
+            {
+                if (item.Id == Guid.Empty)
+                    item.Id = Guid.NewGuid();
+
+                _data.TryAdd(item.Id, item);
             }
         }
 
