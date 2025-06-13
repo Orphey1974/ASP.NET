@@ -17,4 +17,8 @@
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.5" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EditorConfigFiles Remove="D:\git\__Learning\Otus\_Practis\Homeworks\ASP.NET\Homeworks\EF\src\PromoCodeFactory.DataAccess\Repositories\.editorconfig" />
+    </ItemGroup>
+
 </Project>

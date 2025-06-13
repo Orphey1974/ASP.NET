@@ -16,7 +16,7 @@ namespace PromoCodeFactory.DataAccess.Data
                 Email = "owner@somemail.ru",
                 FirstName = "Иван",
                 LastName = "Сергеев",
-                Role = Roles.FirstOrDefault(x => x.Name == "Admin"),
+                RoleId = Roles.FirstOrDefault(x => x.Name == "Admin").Id,
                 AppliedPromocodesCount = 5
             },
             new Employee()
@@ -25,7 +25,7 @@ namespace PromoCodeFactory.DataAccess.Data
                 Email = "andreev@somemail.ru",
                 FirstName = "Петр",
                 LastName = "Андреев",
-                Role = Roles.FirstOrDefault(x => x.Name == "PartnerManager"),
+                RoleId = Roles.FirstOrDefault(x => x.Name == "PartnerManager").Id,
                 AppliedPromocodesCount = 10
             },
         };
@@ -77,12 +77,51 @@ namespace PromoCodeFactory.DataAccess.Data
                         Id = customerId,
                         Email = "ivan_sergeev@mail.ru",
                         FirstName = "Иван",
-                        LastName = "Петров",
-                        //TODO: Добавить предзаполненный список предпочтений
+                        LastName = "Сергеев",
+                        CustomerPreferences = new List<CustomerPreference>
+                        {
+                            new CustomerPreference
+                            {
+                                Id = Guid.NewGuid(),
+                                CustomerId = customerId,
+                                PreferenceId = Preferences.FirstOrDefault(x => x.Name == "Театр").Id
+                            },
+                            new CustomerPreference
+                            {
+                                Id = Guid.NewGuid(),
+                                CustomerId = customerId,
+                                PreferenceId = Preferences.FirstOrDefault(x => x.Name == "Семья").Id
+                            }
+                        }
                     }
                 };
 
                 return customers;
+            }
+        }
+
+        public static IEnumerable<PromoCode> PromoCodes
+        {
+            get
+            {
+                var customerId = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0");
+                var partnerManagerId = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895");
+
+                return new List<PromoCode>()
+                {
+                    new PromoCode()
+                    {
+                        Id = Guid.NewGuid(),
+                        Code = "THEATER2024",
+                        ServiceInfo = "Скидка 20% на билеты в театр",
+                        BeginDate = DateTime.Now.AddDays(-30),
+                        EndDate = DateTime.Now.AddDays(30),
+                        PartnerName = "Театр им. Чехова",
+                        PartnerManagerId = partnerManagerId,
+                        PreferenceId = Preferences.FirstOrDefault(x => x.Name == "Театр").Id,
+                        CustomerId = customerId
+                    }
+                };
             }
         }
     }
