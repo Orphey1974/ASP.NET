@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PromoCodeFactory.Core.Domain.Administration;
 using PromoCodeFactory.Core.Domain.PromoCodeManagement;
+using PromoCodeFactory.Core.Domain.PartnerManagement;
 using System;
 using System.Linq;
 
@@ -15,7 +16,7 @@ namespace PromoCodeFactory.DataAccess.Data
         /// Инициализирует базу данных тестовыми данными
         /// </summary>
         /// <param name="context">Контекст базы данных</param>
-        public static async Task InitializeAsync(PromoCodeFactoryContext context)
+        public static async Task InitializeAsync(PromoCodeFactoryDbContext context)
         {
             // Удаляем существующую базу данных
             await context.Database.EnsureDeletedAsync();
@@ -52,6 +53,16 @@ namespace PromoCodeFactory.DataAccess.Data
             // Добавляем связи клиентов с предпочтениями
             var customerPreferences = FakeDataFactory.CustomerPreferences.ToList();
             await context.CustomerPreferences.AddRangeAsync(customerPreferences);
+            await context.SaveChangesAsync();
+
+            // Добавляем партнеров
+            var partners = FakeDataFactory.Partners.ToList();
+            await context.Partners.AddRangeAsync(partners);
+            await context.SaveChangesAsync();
+
+            // Добавляем лимиты партнеров
+            var partnerLimits = FakeDataFactory.PartnerLimits.ToList();
+            await context.PartnerLimits.AddRangeAsync(partnerLimits);
             await context.SaveChangesAsync();
 
             // Добавляем промокоды

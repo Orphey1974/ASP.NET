@@ -5,7 +5,7 @@ namespace PromoCodeFactory.Core.Domain.PromoCodeManagement
     public class Preference
         : BaseEntity
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Связь Many-to-Many с Customer через CustomerPreference

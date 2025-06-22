@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.Administration;
 using PromoCodeFactory.Core.Domain.PromoCodeManagement;
+using PromoCodeFactory.Core.Domain.PartnerManagement;
 using PromoCodeFactory.DataAccess.Data;
 using PromoCodeFactory.DataAccess.Repositories;
 
@@ -20,7 +21,7 @@ namespace PromoCodeFactory.WebHost
             services.AddControllers();
 
             // Настройка Entity Framework с SQLite
-            services.AddDbContext<PromoCodeFactoryContext>(options =>
+            services.AddDbContext<PromoCodeFactoryDbContext>(options =>
                 options.UseSqlite("Data Source=PromoCodeFactory.db"));
 
             // Регистрация репозиториев с Entity Framework
@@ -30,6 +31,8 @@ namespace PromoCodeFactory.WebHost
             services.AddScoped(typeof(IRepository<Customer>), typeof(EfRepository<Customer>));
             services.AddScoped(typeof(IRepository<CustomerPreference>), typeof(EfRepository<CustomerPreference>));
             services.AddScoped(typeof(IRepository<PromoCode>), typeof(EfRepository<PromoCode>));
+            services.AddScoped(typeof(IRepository<Partner>), typeof(EfRepository<Partner>));
+            services.AddScoped(typeof(IRepository<PartnerLimit>), typeof(EfRepository<PartnerLimit>));
 
             services.AddOpenApiDocument(options =>
             {
@@ -53,7 +56,7 @@ namespace PromoCodeFactory.WebHost
             // Инициализация базы данных
             using (var serviceScope = app.ApplicationServices.CreateScope())
             {
-                var context = serviceScope.ServiceProvider.GetRequiredService<PromoCodeFactoryContext>();
+                var context = serviceScope.ServiceProvider.GetRequiredService<PromoCodeFactoryDbContext>();
                 DatabaseInitializer.InitializeAsync(context).Wait();
             }
 

@@ -7,12 +7,12 @@ namespace PromoCodeFactory.Core.Domain.PromoCodeManagement
     public class Customer
         : BaseEntity
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
 
         public string FullName => $"{FirstName} {LastName}";
 
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// Связь Many-to-Many с Preference через CustomerPreference
