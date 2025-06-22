@@ -16,4 +16,17 @@
       <ProjectReference Include="..\PromoCodeFactory.Core\PromoCodeFactory.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EditorConfigFiles Remove="D:\git\__Learning\Otus\_Practis\Homeworks\ASP.NET\Homeworks\EF\src\PromoCodeFactory.DataAccess\Repositories\.editorconfig" />
+    </ItemGroup>
+
 </Project>

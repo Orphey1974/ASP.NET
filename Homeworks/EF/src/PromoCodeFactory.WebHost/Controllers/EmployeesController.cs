@@ -18,10 +18,12 @@ namespace PromoCodeFactory.WebHost.Controllers
         : ControllerBase
     {
         private readonly IRepository<Employee> _employeeRepository;
+        private readonly IRepository<Role> _roleRepository; // Added Role repository
 
-        public EmployeesController(IRepository<Employee> employeeRepository)
+        public EmployeesController(IRepository<Employee> employeeRepository, IRepository<Role> roleRepository)
         {
             _employeeRepository = employeeRepository;
+            _roleRepository = roleRepository; 
         }
 
         /// <summary>
@@ -56,16 +58,20 @@ namespace PromoCodeFactory.WebHost.Controllers
             if (employee == null)
                 return NotFound();
 
+            // Получаем роль по RoleId сотрудника
+            var role = await _roleRepository.GetByIdAsync(employee.RoleId);
+
             var employeeModel = new EmployeeResponse()
             {
                 Id = employee.Id,
                 Email = employee.Email,
-                Role = new RoleItemResponse()
+                Role = role != null ? new RoleItemResponse()
                 {
-                    Name = employee.Role.Name,
-                    Description = employee.Role.Description
-                },
-                FullName = employee.FullName,
+                    Id = role.Id,
+                    Name = role.Name,
+                    Description = role.Description
+                } : null,
+                FullName = $"{employee.FirstName} {employee.LastName}",
                 AppliedPromocodesCount = employee.AppliedPromocodesCount
             };
 
