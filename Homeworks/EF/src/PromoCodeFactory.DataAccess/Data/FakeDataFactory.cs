@@ -8,28 +8,6 @@ namespace PromoCodeFactory.DataAccess.Data
 {
     public static class FakeDataFactory
     {
-        public static IEnumerable<Employee> Employees => new List<Employee>()
-        {
-            new Employee()
-            {
-                Id = Guid.Parse("451533d5-d8d5-4a11-9c7b-eb9f14e1a32f"),
-                Email = "owner@somemail.ru",
-                FirstName = "Иван",
-                LastName = "Сергеев",
-                Role = Roles.FirstOrDefault(x => x.Name == "Admin"),
-                AppliedPromocodesCount = 5
-            },
-            new Employee()
-            {
-                Id = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895"),
-                Email = "andreev@somemail.ru",
-                FirstName = "Петр",
-                LastName = "Андреев",
-                Role = Roles.FirstOrDefault(x => x.Name == "PartnerManager"),
-                AppliedPromocodesCount = 10
-            },
-        };
-
         public static IEnumerable<Role> Roles => new List<Role>()
         {
             new Role()
@@ -44,6 +22,28 @@ namespace PromoCodeFactory.DataAccess.Data
                 Name = "PartnerManager",
                 Description = "Партнерский менеджер"
             }
+        };
+
+        public static IEnumerable<Employee> Employees => new List<Employee>()
+        {
+            new Employee()
+            {
+                Id = Guid.Parse("451533d5-d8d5-4a11-9c7b-eb9f14e1a32f"),
+                Email = "owner@somemail.ru",
+                FirstName = "Иван",
+                LastName = "Сергеев",
+                RoleId = Guid.Parse("53729686-a368-4eeb-8bfa-cc69b6050d02"), // Admin
+                AppliedPromocodesCount = 5
+            },
+            new Employee()
+            {
+                Id = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895"),
+                Email = "andreev@somemail.ru",
+                FirstName = "Петр",
+                LastName = "Андреев",
+                RoleId = Guid.Parse("b0ae7aac-5493-45cd-ad16-87426a5e7665"), // PartnerManager
+                AppliedPromocodesCount = 10
+            },
         };
 
         public static IEnumerable<Preference> Preferences => new List<Preference>()
@@ -78,11 +78,61 @@ namespace PromoCodeFactory.DataAccess.Data
                         Email = "ivan_sergeev@mail.ru",
                         FirstName = "Иван",
                         LastName = "Петров",
-                        //TODO: Добавить предзаполненный список предпочтений
                     }
                 };
 
                 return customers;
+            }
+        }
+
+        public static IEnumerable<CustomerPreference> CustomerPreferences
+        {
+            get
+            {
+                var customerId = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0");
+                var preferences = Preferences.ToList();
+
+                return new List<CustomerPreference>()
+                {
+                    new CustomerPreference()
+                    {
+                        Id = Guid.NewGuid(),
+                        CustomerId = customerId,
+                        PreferenceId = preferences[0].Id, // Театр
+                    },
+                    new CustomerPreference()
+                    {
+                        Id = Guid.NewGuid(),
+                        CustomerId = customerId,
+                        PreferenceId = preferences[1].Id, // Семья
+                    }
+                };
+            }
+        }
+
+        public static IEnumerable<PromoCode> PromoCodes
+        {
+            get
+            {
+                var employeeId = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895"); // Петр Андреев
+                var preferenceId = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c"); // Театр
+                var customerId = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"); // Иван Петров
+
+                return new List<PromoCode>()
+                {
+                    new PromoCode()
+                    {
+                        Id = Guid.NewGuid(),
+                        Code = "THEATER2024",
+                        ServiceInfo = "Скидка 20% на билеты в театр",
+                        BeginDate = DateTime.Now.AddDays(-30),
+                        EndDate = DateTime.Now.AddDays(30),
+                        PartnerName = "Большой театр",
+                        PartnerManagerId = employeeId,
+                        PreferenceId = preferenceId,
+                        CustomerId = customerId
+                    }
+                };
             }
         }
     }

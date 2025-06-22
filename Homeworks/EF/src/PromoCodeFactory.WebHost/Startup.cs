@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PromoCodeFactory.Core.Abstractions.Repositories;
@@ -17,14 +18,18 @@ namespace PromoCodeFactory.WebHost
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddScoped(typeof(IRepository<Employee>), (x) =>
-                new InMemoryRepository<Employee>(FakeDataFactory.Employees));
-            services.AddScoped(typeof(IRepository<Role>), (x) =>
-                new InMemoryRepository<Role>(FakeDataFactory.Roles));
-            services.AddScoped(typeof(IRepository<Preference>), (x) =>
-                new InMemoryRepository<Preference>(FakeDataFactory.Preferences));
-            services.AddScoped(typeof(IRepository<Customer>), (x) =>
-                new InMemoryRepository<Customer>(FakeDataFactory.Customers));
+
+            // Настройка Entity Framework с SQLite
+            services.AddDbContext<PromoCodeFactoryContext>(options =>
+                options.UseSqlite("Data Source=PromoCodeFactory.db"));
+
+            // Регистрация репозиториев с Entity Framework
+            services.AddScoped(typeof(IRepository<Employee>), typeof(EfRepository<Employee>));
+            services.AddScoped(typeof(IRepository<Role>), typeof(EfRepository<Role>));
+            services.AddScoped(typeof(IRepository<Preference>), typeof(EfRepository<Preference>));
+            services.AddScoped(typeof(IRepository<Customer>), typeof(EfRepository<Customer>));
+            services.AddScoped(typeof(IRepository<CustomerPreference>), typeof(EfRepository<CustomerPreference>));
+            services.AddScoped(typeof(IRepository<PromoCode>), typeof(EfRepository<PromoCode>));
 
             services.AddOpenApiDocument(options =>
             {
@@ -43,6 +48,13 @@ namespace PromoCodeFactory.WebHost
             else
             {
                 app.UseHsts();
+            }
+
+            // Инициализация базы данных
+            using (var serviceScope = app.ApplicationServices.CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetRequiredService<PromoCodeFactoryContext>();
+                DatabaseInitializer.InitializeAsync(context).Wait();
             }
 
             app.UseOpenApi();

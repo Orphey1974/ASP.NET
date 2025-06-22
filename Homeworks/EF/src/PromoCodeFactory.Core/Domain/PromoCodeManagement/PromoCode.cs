@@ -18,8 +18,22 @@ namespace PromoCodeFactory.Core.Domain.PromoCodeManagement
 
         public string PartnerName { get; set; }
 
+        /// <summary>
+        /// Связь с Employee (PartnerManager)
+        /// </summary>
+        public Guid PartnerManagerId { get; set; }
         public Employee PartnerManager { get; set; }
 
+        /// <summary>
+        /// Связь с Preference
+        /// </summary>
+        public Guid PreferenceId { get; set; }
         public Preference Preference { get; set; }
+
+        /// <summary>
+        /// Связь с Customer (One-to-Many)
+        /// </summary>
+        public Guid? CustomerId { get; set; }
+        public Customer Customer { get; set; }
     }
 }
