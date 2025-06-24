@@ -27,10 +27,10 @@ jobs:
       working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
     - name: Сборка решения
-      run: dotnet build PromoCodeFactory.sln --no-restore --configuration Release
+      run: dotnet build ${{ github.workspace }}/Homeworks/EF/src/PromoCodeFactory.sln --no-restore --configuration Release
 
     - name: Запустить xUnit тесты
-      run: dotnet test PromoCodeFactory.Tests/PromoCodeFactory.Tests.csproj --no-build --configuration Release --logger trx
+      run: dotnet test ${{ github.workspace }}/Homeworks/EF/src/PromoCodeFactory.Tests/PromoCodeFactory.Tests.csproj --no-build --configuration Release --logger trx
 
     - name: Публикация результатов тестов
       if: always()
