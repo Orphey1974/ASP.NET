@@ -20,11 +20,11 @@ jobs:
         dotnet-version: '8.0.x' 
 
     - name: Set working directory
-      run: cd $GITHUB_WORKSPACE
+      run: cd $GITHUB_WORKSPACE/Homeworks/EF/src
 
     - name: Восстановить зависимости
       run: dotnet restore  PromoCodeFactory.sln
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
     - name: Сборка решения
       run: dotnet build PromoCodeFactory.sln --no-restore --configuration Release
