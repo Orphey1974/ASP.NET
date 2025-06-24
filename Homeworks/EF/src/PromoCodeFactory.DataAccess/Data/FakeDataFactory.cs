@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PromoCodeFactory.Core.Domain.Administration;
 using PromoCodeFactory.Core.Domain.PromoCodeManagement;
+using PromoCodeFactory.Core.Domain.PartnerManagement;
 
 namespace PromoCodeFactory.DataAccess.Data
 {
@@ -110,6 +111,86 @@ namespace PromoCodeFactory.DataAccess.Data
             }
         }
 
+        public static IEnumerable<Partner> Partners
+        {
+            get
+            {
+                var partnerManagerId = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895"); // Петр Андреев
+
+                return new List<Partner>()
+                {
+                    new Partner()
+                    {
+                        Id = Guid.Parse("8f7b3c2a-1e4d-4f6a-9b8c-7d5e3f2a1b9c"),
+                        Name = "Большой театр",
+                        Description = "Государственный академический Большой театр России",
+                        ContactEmail = "info@bolshoi.ru",
+                        ContactPhone = "+7 (495) 250-73-17",
+                        IsActive = true,
+                        PartnerManagerId = partnerManagerId,
+                        CreatedAt = DateTime.UtcNow.AddDays(-30)
+                    },
+                    new Partner()
+                    {
+                        Id = Guid.Parse("9e8c4d3b-2f5e-5a7b-0c9d-8e6f4a3b2c0d"),
+                        Name = "Московский зоопарк",
+                        Description = "Московский зоологический парк",
+                        ContactEmail = "info@moscowzoo.ru",
+                        ContactPhone = "+7 (499) 252-35-80",
+                        IsActive = true,
+                        PartnerManagerId = partnerManagerId,
+                        CreatedAt = DateTime.UtcNow.AddDays(-20)
+                    },
+                    new Partner()
+                    {
+                        Id = Guid.Parse("0f9d5e4c-3a6f-6a8c-1d0e-9f7a4a3c1d0e"),
+                        Name = "Неактивный партнер",
+                        Description = "Партнер для тестирования неактивных состояний",
+                        ContactEmail = "inactive@test.ru",
+                        ContactPhone = "+7 (000) 000-00-00",
+                        IsActive = false,
+                        PartnerManagerId = partnerManagerId,
+                        CreatedAt = DateTime.UtcNow.AddDays(-10)
+                    }
+                };
+            }
+        }
+
+        public static IEnumerable<PartnerLimit> PartnerLimits
+        {
+            get
+            {
+                var bigTheaterId = Guid.Parse("8f7b3c2a-1e4d-4f6a-9b8c-7d5e3f2a1b9c");
+                var zooId = Guid.Parse("9e8c4d3b-2f5e-5a7b-0c9d-8e6f4a3b2c0d");
+
+                return new List<PartnerLimit>()
+                {
+                    new PartnerLimit()
+                    {
+                        Id = Guid.NewGuid(),
+                        PartnerId = bigTheaterId,
+                        Limit = 100,
+                        CurrentCount = 25,
+                        StartDate = DateTime.UtcNow.AddDays(-30),
+                        EndDate = DateTime.UtcNow.AddDays(30),
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-30)
+                    },
+                    new PartnerLimit()
+                    {
+                        Id = Guid.NewGuid(),
+                        PartnerId = zooId,
+                        Limit = 50,
+                        CurrentCount = 10,
+                        StartDate = DateTime.UtcNow.AddDays(-20),
+                        EndDate = DateTime.UtcNow.AddDays(40),
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-20)
+                    }
+                };
+            }
+        }
+
         public static IEnumerable<PromoCode> PromoCodes
         {
             get
@@ -117,6 +198,7 @@ namespace PromoCodeFactory.DataAccess.Data
                 var employeeId = Guid.Parse("f766e2bf-340a-46ea-bff3-f1700b435895"); // Петр Андреев
                 var preferenceId = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c"); // Театр
                 var customerId = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"); // Иван Петров
+                var partnerId = Guid.Parse("8f7b3c2a-1e4d-4f6a-9b8c-7d5e3f2a1b9c"); // Большой театр
 
                 return new List<PromoCode>()
                 {
@@ -129,6 +211,7 @@ namespace PromoCodeFactory.DataAccess.Data
                         EndDate = DateTime.Now.AddDays(30),
                         PartnerName = "Большой театр",
                         PartnerManagerId = employeeId,
+                        PartnerId = partnerId,
                         PreferenceId = preferenceId,
                         CustomerId = customerId
                     }

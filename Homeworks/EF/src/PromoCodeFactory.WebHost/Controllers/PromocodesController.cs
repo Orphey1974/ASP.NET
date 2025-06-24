@@ -22,13 +22,13 @@ namespace PromoCodeFactory.WebHost.Controllers
         private readonly IRepository<PromoCode> _promoCodeRepository;
         private readonly IRepository<Preference> _preferenceRepository;
         private readonly IRepository<Employee> _employeeRepository;
-        private readonly PromoCodeFactoryContext _context;
+        private readonly PromoCodeFactoryDbContext _context;
 
         public PromocodesController(
             IRepository<PromoCode> promoCodeRepository,
             IRepository<Preference> preferenceRepository,
             IRepository<Employee> employeeRepository,
-            PromoCodeFactoryContext context)
+            PromoCodeFactoryDbContext context)
         {
             _promoCodeRepository = promoCodeRepository;
             _preferenceRepository = preferenceRepository;

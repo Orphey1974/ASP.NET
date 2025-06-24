@@ -16,17 +16,17 @@ namespace PromoCodeFactory.WebHost.Models
         /// <summary>
         /// Имя клиента
         /// </summary>
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
 
         /// <summary>
         /// Фамилия клиента
         /// </summary>
-        public string LastName { get; set; }
+        public string LastName { get; set; } = string.Empty;
 
         /// <summary>
         /// Email клиента
         /// </summary>
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// Список предпочтений клиента

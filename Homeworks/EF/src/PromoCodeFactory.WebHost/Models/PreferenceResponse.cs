@@ -15,6 +15,6 @@ namespace PromoCodeFactory.WebHost.Models
         /// <summary>
         /// Название предпочтения
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

@@ -14,10 +14,10 @@ namespace PromoCodeFactory.DataAccess.Repositories
     /// <typeparam name="T">Тип сущности</typeparam>
     public class EfRepository<T> : IRepository<T> where T : BaseEntity
     {
-        private readonly PromoCodeFactoryContext _context;
+        private readonly PromoCodeFactoryDbContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public EfRepository(PromoCodeFactoryContext context)
+        public EfRepository(PromoCodeFactoryDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _dbSet = _context.Set<T>();
@@ -37,7 +37,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// </summary>
         /// <param name="id">Идентификатор сущности</param>
         /// <returns>Сущность или null, если не найдена</returns>
-        public async Task<T> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
         }

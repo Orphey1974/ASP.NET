@@ -15,20 +15,20 @@ namespace PromoCodeFactory.DataAccess.Repositories
         : IRepository<T>
         where T : BaseEntity
     {
-        protected List<T> Data { get; set; }
+        private readonly List<T> _entities = new List<T>();
 
         public InMemoryRepository(IEnumerable<T> data)
         {
-            Data = data.ToList();
+            _entities.AddRange(data);
         }
 
         /// <summary>
         /// Получить все сущности
         /// </summary>
         /// <returns>Коллекция всех сущностей</returns>
-        public Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return Task.FromResult<IEnumerable<T>>(Data);
+            return await Task.FromResult(_entities.AsEnumerable());
         }
 
         /// <summary>
@@ -36,44 +36,44 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// </summary>
         /// <param name="id">Идентификатор сущности</param>
         /// <returns>Сущность или null, если не найдена</returns>
-        public Task<T> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
-            return Task.FromResult(Data.FirstOrDefault(x => x.Id == id));
+            return await Task.FromResult(_entities.FirstOrDefault(e => e.Id == id));
         }
 
         /// <summary>
         /// Добавить новую сущность
         /// </summary>
         /// <param name="entity">Сущность для добавления</param>
-        public Task AddAsync(T entity)
+        public async Task AddAsync(T entity)
         {
-            Data.Add(entity);
-            return Task.CompletedTask;
+            _entities.Add(entity);
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Обновить существующую сущность
         /// </summary>
         /// <param name="entity">Сущность для обновления</param>
-        public Task UpdateAsync(T entity)
+        public async Task UpdateAsync(T entity)
         {
-            var existingEntity = Data.FirstOrDefault(x => x.Id == entity.Id);
+            var existingEntity = _entities.FirstOrDefault(e => e.Id == entity.Id);
             if (existingEntity != null)
             {
-                var index = Data.IndexOf(existingEntity);
-                Data[index] = entity;
+                var index = _entities.IndexOf(existingEntity);
+                _entities[index] = entity;
             }
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Удалить сущность
         /// </summary>
         /// <param name="entity">Сущность для удаления</param>
-        public Task DeleteAsync(T entity)
+        public async Task DeleteAsync(T entity)
         {
-            Data.Remove(entity);
-            return Task.CompletedTask;
+            _entities.Remove(entity);
+            await Task.CompletedTask;
         }
 
         /// <summary>
