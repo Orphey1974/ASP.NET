@@ -6,7 +6,7 @@ services:
     container_name: promo_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: promocodefactory
     ports:
       - "5432:5432"
