@@ -17,7 +17,7 @@ jobs:
     - name: Установить .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x' 
+        dotnet-version: '9.0.x' 
 
     - name: Set working directory
       run: cd $GITHUB_WORKSPACE/Homeworks/EF/src
