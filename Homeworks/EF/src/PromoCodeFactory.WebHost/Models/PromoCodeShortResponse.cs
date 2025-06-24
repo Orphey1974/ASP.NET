@@ -15,12 +15,12 @@ namespace PromoCodeFactory.WebHost.Models
         /// <summary>
         /// Код промокода
         /// </summary>
-        public string Code { get; set; }
+        public string Code { get; set; } = string.Empty;
 
         /// <summary>
         /// Информация об услуге
         /// </summary>
-        public string ServiceInfo { get; set; }
+        public string ServiceInfo { get; set; } = string.Empty;
 
         /// <summary>
         /// Дата начала действия
@@ -35,16 +35,16 @@ namespace PromoCodeFactory.WebHost.Models
         /// <summary>
         /// Название партнера
         /// </summary>
-        public string PartnerName { get; set; }
+        public string PartnerName { get; set; } = string.Empty;
 
         /// <summary>
         /// Название предпочтения
         /// </summary>
-        public string PreferenceName { get; set; }
+        public string PreferenceName { get; set; } = string.Empty;
 
         /// <summary>
         /// Имя клиента, которому выдан промокод
         /// </summary>
-        public string CustomerName { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
     }
 }

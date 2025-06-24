@@ -132,7 +132,7 @@ namespace PromoCodeFactory.DataAccess.Data
                     },
                     new Partner()
                     {
-                        Id = Guid.Parse("9e8c4d3b-2f5e-5g7b-0c9d-8e6f4g3b2c0d"),
+                        Id = Guid.Parse("9e8c4d3b-2f5e-5a7b-0c9d-8e6f4a3b2c0d"),
                         Name = "Московский зоопарк",
                         Description = "Московский зоологический парк",
                         ContactEmail = "info@moscowzoo.ru",
@@ -143,7 +143,7 @@ namespace PromoCodeFactory.DataAccess.Data
                     },
                     new Partner()
                     {
-                        Id = Guid.Parse("0f9d5e4c-3g6f-6h8c-1d0e-9f7g4h3c1d0e"),
+                        Id = Guid.Parse("0f9d5e4c-3a6f-6a8c-1d0e-9f7a4a3c1d0e"),
                         Name = "Неактивный партнер",
                         Description = "Партнер для тестирования неактивных состояний",
                         ContactEmail = "inactive@test.ru",
@@ -161,7 +161,7 @@ namespace PromoCodeFactory.DataAccess.Data
             get
             {
                 var bigTheaterId = Guid.Parse("8f7b3c2a-1e4d-4f6a-9b8c-7d5e3f2a1b9c");
-                var zooId = Guid.Parse("9e8c4d3b-2f5e-5g7b-0c9d-8e6f4g3b2c0d");
+                var zooId = Guid.Parse("9e8c4d3b-2f5e-5a7b-0c9d-8e6f4a3b2c0d");
 
                 return new List<PartnerLimit>()
                 {

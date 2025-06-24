@@ -1,10 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.PartnerManagement;
-using PromoCodeFactory.DataAccess.Data;
 
 namespace PromoCodeFactory.WebHost.Controllers
 {
@@ -14,16 +13,13 @@ namespace PromoCodeFactory.WebHost.Controllers
     {
         private readonly IRepository<Partner> _partnerRepository;
         private readonly IRepository<PartnerLimit> _partnerLimitRepository;
-        private readonly PromoCodeFactoryDbContext _context;
 
         public PartnersController(
             IRepository<Partner> partnerRepository,
-            IRepository<PartnerLimit> partnerLimitRepository,
-            PromoCodeFactoryDbContext context)
+            IRepository<PartnerLimit> partnerLimitRepository)
         {
             _partnerRepository = partnerRepository;
             _partnerLimitRepository = partnerLimitRepository;
-            _context = context;
         }
 
         [HttpPost("{partnerId}/limits")]
@@ -61,8 +57,8 @@ namespace PromoCodeFactory.WebHost.Controllers
             }
 
             // Отключение предыдущего активного лимита
-            var existingActiveLimit = await _context.PartnerLimits
-                .FirstOrDefaultAsync(pl => pl.PartnerId == partnerId && pl.IsActive);
+            var existingActiveLimit = (await _partnerLimitRepository.GetAllAsync())
+                .FirstOrDefault(pl => pl.PartnerId == partnerId && pl.IsActive);
 
             if (existingActiveLimit != null)
             {
@@ -95,6 +91,58 @@ namespace PromoCodeFactory.WebHost.Controllers
                 EndDate = newLimit.EndDate,
                 IsActive = newLimit.IsActive
             });
+        }
+
+        /// <summary>
+        /// Получить список всех партнёров
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAllPartnersAsync()
+        {
+            // Получаем всех партнёров
+            var partners = await _partnerRepository.GetAllAsync();
+            return Ok(partners);
+        }
+
+        /// <summary>
+        /// Получить партнёра по идентификатору
+        /// </summary>
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetPartnerByIdAsync(Guid id)
+        {
+            // Получаем партнёра по id
+            var partner = await _partnerRepository.GetByIdAsync(id);
+            if (partner == null)
+                return NotFound();
+            return Ok(partner);
+        }
+
+        /// <summary>
+        /// Добавить нового партнёра
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> AddPartnerAsync([FromBody] Partner partner)
+        {
+            // Генерируем новый идентификатор и дату создания
+            partner.Id = Guid.NewGuid();
+            partner.CreatedAt = DateTime.UtcNow;
+            await _partnerRepository.AddAsync(partner);
+            // Возвращаем результат с маршрутом для получения созданного партнёра
+            return CreatedAtAction(nameof(GetPartnerByIdAsync), new { id = partner.Id }, partner);
+        }
+
+        /// <summary>
+        /// Удалить партнёра по идентификатору
+        /// </summary>
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeletePartnerAsync(Guid id)
+        {
+            // Получаем партнёра по id
+            var partner = await _partnerRepository.GetByIdAsync(id);
+            if (partner == null)
+                return NotFound();
+            await _partnerRepository.DeleteAsync(partner);
+            return NoContent();
         }
     }
 

@@ -23,7 +23,7 @@ namespace PromoCodeFactory.Core.Abstractions.Repositories
         /// </summary>
         /// <param name="id">Идентификатор сущности</param>
         /// <returns>Сущность или null, если не найдена</returns>
-        Task<T> GetByIdAsync(Guid id);
+        Task<T?> GetByIdAsync(Guid id);
 
         /// <summary>
         /// Добавить новую сущность

@@ -21,13 +21,13 @@ namespace PromoCodeFactory.WebHost.Controllers
         private readonly IRepository<Customer> _customerRepository;
         private readonly IRepository<CustomerPreference> _customerPreferenceRepository;
         private readonly IRepository<PromoCode> _promoCodeRepository;
-        private readonly PromoCodeFactoryContext _context;
+        private readonly PromoCodeFactoryDbContext _context;
 
         public CustomersController(
             IRepository<Customer> customerRepository,
             IRepository<CustomerPreference> customerPreferenceRepository,
             IRepository<PromoCode> promoCodeRepository,
-            PromoCodeFactoryContext context)
+            PromoCodeFactoryDbContext context)
         {
             _customerRepository = customerRepository;
             _customerPreferenceRepository = customerPreferenceRepository;
@@ -59,7 +59,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <param name="id">Идентификатор клиента</param>
         /// <returns>Данные клиента с предпочтениями и промокодами</returns>
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<ActionResult<CustomerResponse>> GetCustomerAsync(Guid id)
         {
             var customer = await _context.Customers
@@ -135,7 +135,23 @@ namespace PromoCodeFactory.WebHost.Controllers
                 }
             }
 
-            return CreatedAtAction(nameof(GetCustomerAsync), new { id = customer.Id }, customer);
+            var response = new CustomerResponse
+            {
+                Id = customer.Id,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                Email = customer.Email,
+                Preferences = new List<PreferenceResponse>(),
+                PromoCodes = new List<PromoCodeShortResponse>()
+            };
+
+            // Возвращаем результат создания с явным указанием контроллера (в нижнем регистре)
+            return CreatedAtAction(
+                nameof(GetCustomerAsync),
+                "customers", // контроллер с маленькой буквы
+                new { id = customer.Id },
+                response
+            );
         }
 
         /// <summary>
