@@ -20,10 +20,10 @@ jobs:
         dotnet-version: '8.0.x' 
 
     - name: Восстановить зависимости
-      run: dotnet restore
+      run: dotnet restore  PromoCodeFactory.sln
 
     - name: Сборка решения
-      run: dotnet build PromoCodeFactory.sln --no-restore --configuration Release
+      run: dotnet build --no-restore --configuration Release
 
     - name: Запустить xUnit тесты
       run: dotnet test PromoCodeFactory.Tests/PromoCodeFactory.Tests.csproj --no-build --configuration Release --logger trx
