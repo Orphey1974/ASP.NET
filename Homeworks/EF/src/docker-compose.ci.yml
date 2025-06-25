@@ -1,22 +1,40 @@
-# Базовый образ для запуска приложения
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-WORKDIR /app
-EXPOSE 80  # Порт, который будет открыт в контейнере
+version: '3.8'
 
-# Сборка приложения
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
-COPY ["PromoCodeFactory.WebHost/PromoCodeFactory.WebHost.csproj", "PromoCodeFactory.WebHost/"]
-RUN dotnet restore "PromoCodeFactory.WebHost/PromoCodeFactory.WebHost.csproj"
-COPY . .
-RUN dotnet build "PromoCodeFactory.WebHost.csproj" -c Release -o /app/build
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: promocodefactory
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-# Публикация приложения
-FROM build AS publish
-RUN dotnet publish "PromoCodeFactory.WebHost.csproj" -c Release -o /app/publish
+  webhost:
+    build:
+      context: . #/Homeworks/EF/src
+      dockerfile: docker.yml
+    image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: promocodefactory
+    volumes:
+      - ./test-results:/app/TestResults
 
-# Финальный образ
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PromoCodeFactory.WebHost.dll"]
+  tests:
+    image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
+    depends_on:
+      webhost:
+        condition: service_started
+    command: dotnet test --logger "trx;LogFileName=testresults.trx"
+    volumes:
+      - ./test-results:/app/TestResults
