@@ -18,7 +18,7 @@ services:
     build:
       context: ./Homeworks/EF/src
       dockerfile: Dockerfile
-    image: ghcr.io/${GITHUB_REPOSITORY}/promocodefactory-webhost:${TAG}
+    image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
     depends_on:
       db:
         condition: service_healthy
