@@ -15,7 +15,7 @@ services:
   webhost:
     build:
       context: .
-      dockerfile: Homeworks/EF/src/docker-webhost
+      dockerfile: docker-webhost.yml
     image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
     depends_on:
       db:

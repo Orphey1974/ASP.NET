@@ -1,0 +1,4 @@
+{
+	"chatgpt.promptPrefix.customPrompt1-enabled": true,
+	"chatgpt.gpt3.responsesAPI.enabled": false
+}
