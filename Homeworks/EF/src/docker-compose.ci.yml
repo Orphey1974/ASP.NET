@@ -16,7 +16,7 @@ services:
 
   webhost:
     build:
-      context: ./Homeworks/EF/src
+      context: .#/Homeworks/EF/src
       dockerfile: Dockerfile
     image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
     depends_on:
@@ -31,7 +31,7 @@ services:
       - ./test-results:/app/TestResults
 
   tests:
-    image: ghcr.io/${GITHUB_REPOSITORY}/promocodefactory-webhost:${TAG}
+    image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
     depends_on:
       webhost:
         condition: service_started
