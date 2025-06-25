@@ -33,7 +33,7 @@ jobs:
       run: |
         docker compose -f docker-compose.ci.yml build
         docker compose -f docker-compose.ci.yml push
-      working-directory: ${{ github.workspace }}/Homeworks/EF/src
+      working-directory: ${github.workspace}/Homeworks/EF/src
 
   test:
     needs: build
