@@ -14,7 +14,7 @@ services:
 
   webhost:
     build:
-      context: ./Homeworks/EF/src
+      context: .
       dockerfile: docker
     image: ghcr.io/orphey1974/asp.net/promocodefactory-webhost:${TAG}
     depends_on:
