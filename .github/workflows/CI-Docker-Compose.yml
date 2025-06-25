@@ -31,8 +31,8 @@ jobs:
 
     - name: Build and push Docker images
       run: |
-        docker compose -f src/docker-compose.ci.yml build
-        docker compose -f src/docker-compose.ci.yml push
+        docker compose -f docker-compose.ci.yml build
+        docker compose -f docker-compose.ci.yml push
       working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
   test:
