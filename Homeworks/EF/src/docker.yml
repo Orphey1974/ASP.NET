@@ -1,7 +1,7 @@
 # Базовый образ для запуска приложения
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-EXPOSE 80  # Порт, который будет открыт в контейнере
+EXPOSE 80
 
 # Сборка приложения
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
