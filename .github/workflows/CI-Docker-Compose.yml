@@ -9,7 +9,7 @@ on:
 env:
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
   DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.sha }}/promocodefactory
+  IMAGE_NAME: ${{ github.repository }}/promocodefactory
   TAG: ${{ github.sha }}
 
 jobs:
@@ -31,9 +31,9 @@ jobs:
 
     - name: Build and push Docker images
       run: |
-        docker compose -f docker-compose.ci.yml build
-        docker compose -f docker-compose.ci.yml push
-      working-directory: ${github.workspace}/Homeworks/EF/src
+        docker compose -f src/docker-compose.ci.yml build
+        docker compose -f src/docker-compose.ci.yml push
+      working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
   test:
     needs: build
@@ -57,19 +57,19 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Start services
-      run: docker compose -f docker-compose.ci.yml up -d
+      run: docker compose -f src/docker-compose.ci.yml up -d
       working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
     - name: Run database migrations
-      run: docker compose -f docker-compose.ci.yml exec webhost dotnet ef database update
+      run: docker compose -f src/docker-compose.ci.yml exec webhost dotnet ef database update
       working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
     - name: Run tests
-      run: docker compose -f docker-compose.ci.yml exec webhost dotnet test --logger "trx;LogFileName=testresults.trx"
+      run: docker compose -f src/docker-compose.ci.yml exec webhost dotnet test --logger "trx;LogFileName=testresults.trx"
       working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
     - name: Copy test results
-      run: docker compose -f docker-compose.ci.yml cp webhost:/app/TestResults ./test-results
+      run: docker compose -f src/docker-compose.ci.yml cp webhost:/app/TestResults ./test-results
       working-directory: ${{ github.workspace }}/Homeworks/EF/src
 
     - name: Publish test results
