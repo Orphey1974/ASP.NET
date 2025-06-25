@@ -9,7 +9,7 @@ on:
 env:
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
   DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: promocodefactory
+  IMAGE_NAME: ${{ github.sha }}/promocodefactory
   TAG: ${{ github.sha }}
 
 jobs:
