@@ -36,3 +36,18 @@ services:
     command: dotnet test --logger "trx;LogFileName=testresults.trx"
     volumes:
       - ./test-results:/app/TestResults
+
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - ./PromoCodeFactory.WebHost:/app
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: promocodefactory
+    command: sh -c "dotnet tool install --global dotnet-ef && ~/.dotnet/tools/dotnet-ef database update"
