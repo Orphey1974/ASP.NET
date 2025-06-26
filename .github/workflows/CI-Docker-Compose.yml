@@ -99,18 +99,3 @@ jobs:
         # ssh deploy@server "docker-compose pull && docker-compose up -d"
       env:
         PRODUCTION_SECRET: ${{ secrets.PRODUCTION_SECRET }}
-
-migrator:
-  image: mcr.microsoft.com/dotnet/sdk:8.0
-  depends_on:
-    db:
-      condition: service_healthy
-  working_dir: /app
-  volumes:
-    - ./PromoCodeFactory.WebHost:/app
-  environment:
-    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    POSTGRES_HOST: db
-    POSTGRES_PORT: 5432
-    POSTGRES_DB: promocodefactory
-  command: dotnet ef database update
