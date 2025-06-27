@@ -1,4 +1,5 @@
 {
 	"chatgpt.promptPrefix.customPrompt1-enabled": true,
-	"chatgpt.gpt3.responsesAPI.enabled": false
+	"chatgpt.gpt3.responsesAPI.enabled": false,
+	"dotnet.defaultSolution": "Homeworks/Base/src/PromoCodeFactory.sln"
 }
