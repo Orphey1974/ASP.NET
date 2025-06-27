@@ -35,20 +35,19 @@ jobs:
       run: cd $GITHUB_WORKSPACE/Homeworks/UnitTests/src
 
     - name: Восстановить зависимости
-      run: dotnet restore  PromoCodeFactory.sln
+      run: $HOME/.dotnet/dotnet restore PromoCodeFactory.sln
       working-directory: ${{ github.workspace }}/Homeworks/UnitTests/src
 
     - name: Сборка решения
-      run: dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
+      run: $HOME/.dotnet/dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
 
     - name: Debug PATH and DOTNET_ROOT
       run: |
         echo "PATH=$PATH"
         echo "DOTNET_ROOT=$DOTNET_ROOT"
-        which dotnet
-        /home/runner/.dotnet/dotnet
-        dotnet --info
-        dotnet --list-runtimes
+        which $HOME/.dotnet/dotnet
+        $HOME/.dotnet/dotnet --info
+        $HOME/.dotnet/dotnet --list-runtimes
 
     - name: Запустить xUnit тесты (явный путь)
       run: $HOME/.dotnet/dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
