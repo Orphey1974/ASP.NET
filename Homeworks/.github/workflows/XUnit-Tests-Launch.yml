@@ -38,6 +38,12 @@ jobs:
       run: $HOME/.dotnet/dotnet restore PromoCodeFactory.sln
       working-directory: ${{ github.workspace }}/Homeworks/UnitTests/src
 
+    - name: Очистить решение
+      run: $HOME/.dotnet/dotnet clean ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln
+      env:
+        DOTNET_ROOT: $HOME/.dotnet
+        PATH: $HOME/.dotnet:$HOME/.dotnet/tools:$PATH
+
     - name: Сборка решения
       run: $HOME/.dotnet/dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
 
