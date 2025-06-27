@@ -26,7 +26,9 @@ jobs:
       run: |
         wget https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.sh -O dotnet-install.sh
         chmod +x dotnet-install.sh
-        ./dotnet-install.sh --runtime aspnetcore --version 8.0.0
+        ./dotnet-install.sh --runtime aspnetcore --version 8.0.0 --install-dir $HOME/.dotnet
+        echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
+        echo "$HOME/.dotnet" >> $GITHUB_PATH
 
     - name: Set working directory
       run: cd $GITHUB_WORKSPACE/Homeworks/UnitTests/src
