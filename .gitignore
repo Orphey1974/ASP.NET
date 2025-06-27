@@ -1,1 +1,2 @@
-Homeworks/EF/src/.env
+.env
+*.patch
