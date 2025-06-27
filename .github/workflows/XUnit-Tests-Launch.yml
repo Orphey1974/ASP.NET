@@ -17,20 +17,20 @@ jobs:
     - name: Установить .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x' 
+        dotnet-version: '9.0.x'
 
     - name: Set working directory
-      run: cd $GITHUB_WORKSPACE/Homeworks/EF/src
+      run: cd $GITHUB_WORKSPACE/Homeworks/UnitTests/src
 
     - name: Восстановить зависимости
       run: dotnet restore  PromoCodeFactory.sln
-      working-directory: ${{ github.workspace }}/Homeworks/EF/src
+      working-directory: ${{ github.workspace }}/Homeworks/UnitTests/src
 
     - name: Сборка решения
-      run: dotnet build ${{ github.workspace }}/Homeworks/EF/src/PromoCodeFactory.sln --no-restore --configuration Release
+      run: dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
 
     - name: Запустить xUnit тесты
-      run: dotnet test ${{ github.workspace }}/Homeworks/EF/src/PromoCodeFactory.Tests/PromoCodeFactory.Tests.csproj --no-build --configuration Release --logger trx
+      run: dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.Tests/PromoCodeFactory.Tests.csproj --no-build --configuration Release --logger trx
 
     - name: Публикация результатов тестов
       if: always()
