@@ -29,9 +29,9 @@ jobs:
     - name: Сборка решения
       run: dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
 
- - name: Запустить xUnit тесты
+    - name: Запустить xUnit тесты
       run: dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
-  
+
     - name: Публикация результатов тестов
       if: always()
       uses: actions/upload-artifact@v4
