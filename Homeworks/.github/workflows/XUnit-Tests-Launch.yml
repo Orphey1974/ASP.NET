@@ -1,7 +1,43 @@
-- name: Установить .NET
-  uses: actions/setup-dotnet@v4
-  with:
-    dotnet-version: |
-      8.0.x
-      9.0.x
-    dotnet-quality: 'ga'
+name: XUnit Tests CI
+
+on:
+  push:
+    branches: [ main, develop, feature/*,hotfix/* ]
+  pull_request:
+    branches: [ main, develop, feature/*,hotfix/* ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Клонировать репозиторий
+      uses: actions/checkout@v4
+
+    - name: Установить .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          9.0.x
+        dotnet-quality: 'ga'
+
+    - name: Set working directory
+      run: cd $GITHUB_WORKSPACE/Homeworks/UnitTests/src
+
+    - name: Восстановить зависимости
+      run: dotnet restore  PromoCodeFactory.sln
+      working-directory: ${{ github.workspace }}/Homeworks/UnitTests/src
+
+    - name: Сборка решения
+      run: dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
+
+    - name: Запустить xUnit тесты
+      run: dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
+
+    - name: Публикация результатов тестов
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/TestResults/*.trx'
