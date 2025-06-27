@@ -41,8 +41,19 @@ jobs:
     - name: Сборка решения
       run: dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
 
+    - name: Debug PATH and DOTNET_ROOT
+      run: |
+        echo "PATH=$PATH"
+        echo "DOTNET_ROOT=$DOTNET_ROOT"
+        which dotnet
+        dotnet --info
+        dotnet --list-runtimes
+
     - name: Запустить xUnit тесты
       run: dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
+      env:
+        DOTNET_ROOT: $HOME/.dotnet
+        PATH: $HOME/.dotnet:$HOME/.dotnet/tools:$PATH
 
     - name: Публикация результатов тестов
       if: always()
