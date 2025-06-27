@@ -49,8 +49,8 @@ jobs:
         dotnet --info
         dotnet --list-runtimes
 
-    - name: Запустить xUnit тесты
-      run: dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
+    - name: Запустить xUnit тесты (явный путь)
+      run: $HOME/.dotnet/dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
       env:
         DOTNET_ROOT: $HOME/.dotnet
         PATH: $HOME/.dotnet:$HOME/.dotnet/tools:$PATH
