@@ -50,4 +50,4 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       POSTGRES_DB: promocodefactory
-    command: sh -c "dotnet tool install --global dotnet-ef && ~/.dotnet/tools/dotnet-ef database update"
+    command: sh -c "dotnet tool install --global dotnet-ef && dotnet build && ~/.dotnet/tools/dotnet-ef database update"
