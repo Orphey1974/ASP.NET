@@ -22,6 +22,12 @@ jobs:
           9.0.x
         dotnet-quality: 'ga'
 
+    - name: Install ASP.NET Core Runtime 8.0
+      run: |
+        wget https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.sh -O dotnet-install.sh
+        chmod +x dotnet-install.sh
+        ./dotnet-install.sh --runtime aspnetcore --version 8.0.0
+
     - name: Set working directory
       run: cd $GITHUB_WORKSPACE/Homeworks/UnitTests/src
 
