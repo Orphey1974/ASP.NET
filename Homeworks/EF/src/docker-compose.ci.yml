@@ -44,9 +44,7 @@ services:
         condition: service_healthy
     working_dir: /app/PromoCodeFactory.WebHost
     volumes:
-      - ./PromoCodeFactory.WebHost:/app/PromoCodeFactory.WebHost
-      - ./PromoCodeFactory.Core:/app/PromoCodeFactory.Core
-      - ./PromoCodeFactory.DataAccess:/app/PromoCodeFactory.DataAccess
+      - ./:/app
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST: db
