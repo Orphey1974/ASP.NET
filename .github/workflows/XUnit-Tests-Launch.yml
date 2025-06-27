@@ -2,9 +2,9 @@ name: XUnit Tests CI
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches: [ main, develop, feature/*,hotfix/* ]
   pull_request:
-    branches: [ main, develop, feature/* ]
+    branches: [ main, develop, feature/*,hotfix/* ]
 
 jobs:
   build-and-test:
