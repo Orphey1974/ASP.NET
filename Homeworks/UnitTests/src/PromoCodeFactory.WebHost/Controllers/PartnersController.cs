@@ -61,6 +61,9 @@ namespace PromoCodeFactory.WebHost.Controllers
             var limit = partner.PartnerLimits
                 .FirstOrDefault(x => x.Id == limitId);
 
+            if (limit == null)
+                return NotFound();
+
             var response = new PartnerPromoCodeLimitResponse()
             {
                 Id = limit.Id,
@@ -70,7 +73,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                 EndDate = limit.EndDate.ToString("dd.MM.yyyy hh:mm:ss"),
                 CancelDate = limit.CancelDate?.ToString("dd.MM.yyyy hh:mm:ss"),
             };
-            
+
             return Ok(response);
         }
         
