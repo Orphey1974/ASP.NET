@@ -1,0 +1,69 @@
+name: XUnit Tests CI
+
+on:
+  push:
+    branches: [ main, develop, feature/*,hotfix/* ]
+  pull_request:
+    branches: [ main, develop, feature/*,hotfix/* ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Клонировать репозиторий
+      uses: actions/checkout@v4
+
+    - name: Установить .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          9.0.x
+        dotnet-quality: 'ga'
+
+    - name: Install ASP.NET Core Runtime 8.0
+      run: |
+        wget https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.sh -O dotnet-install.sh
+        chmod +x dotnet-install.sh
+        ./dotnet-install.sh --runtime aspnetcore --version 8.0.0 --install-dir $HOME/.dotnet
+        echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
+        echo "$HOME/.dotnet" >> $GITHUB_PATH
+        echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+    - name: Set working directory
+      run: cd $GITHUB_WORKSPACE/Homeworks/UnitTests/src
+
+    - name: Восстановить зависимости
+      run: $HOME/.dotnet/dotnet restore PromoCodeFactory.sln
+      working-directory: ${{ github.workspace }}/Homeworks/UnitTests/src
+
+    - name: Очистить решение
+      run: $HOME/.dotnet/dotnet clean ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln
+      env:
+        DOTNET_ROOT: $HOME/.dotnet
+        PATH: $HOME/.dotnet:$HOME/.dotnet/tools:$PATH
+
+    - name: Сборка решения
+      run: $HOME/.dotnet/dotnet build ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
+
+    - name: Debug PATH and DOTNET_ROOT
+      run: |
+        echo "PATH=$PATH"
+        echo "DOTNET_ROOT=$DOTNET_ROOT"
+        which $HOME/.dotnet/dotnet
+        $HOME/.dotnet/dotnet --info
+        $HOME/.dotnet/dotnet --list-runtimes
+
+    - name: Запустить xUnit тесты (явный путь)
+      run: $HOME/.dotnet/dotnet test ${{ github.workspace }}/Homeworks/UnitTests/src/PromoCodeFactory.UnitTests/PromoCodeFactory.UnitTests.csproj --no-build --configuration Release --logger trx
+      env:
+        DOTNET_ROOT: $HOME/.dotnet
+        PATH: $HOME/.dotnet:$HOME/.dotnet/tools:$PATH
+
+    - name: Публикация результатов тестов
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/TestResults/*.trx'
