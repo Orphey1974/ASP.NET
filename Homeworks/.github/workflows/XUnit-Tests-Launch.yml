@@ -46,6 +46,7 @@ jobs:
         echo "PATH=$PATH"
         echo "DOTNET_ROOT=$DOTNET_ROOT"
         which dotnet
+        /home/runner/.dotnet/dotnet
         dotnet --info
         dotnet --list-runtimes
 
