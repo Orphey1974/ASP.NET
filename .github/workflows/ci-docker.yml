@@ -1,0 +1,61 @@
+name: CI-docker
+
+
+on:
+  push:
+    branches: [ master, main, feature/*, hotfix/* ]
+  pull_request:
+    branches: [ master, main, feature/*, hotfix/* ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: promocode_factory_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      ConnectionStrings__PromoCodeFactoryDb: Host=localhost;Database=promocode_factory_ci;Username=postgres;Password=ci_password;Port=5432
+      ASPNETCORE_ENVIRONMENT: CI
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Homeworks/UnitTests/src/PromoCodeFactory.sln
+
+      - name: Build
+        run: dotnet build Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres -d promocode_factory_ci; then
+              echo "Postgres is ready!"; break;
+            fi
+            echo "Waiting for postgres... (attempt $i/30)"; sleep 3;
+          done
+
+      - name: Run EF Core migrations
+        run: |
+          dotnet tool install --global dotnet-ef
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          dotnet ef database update --project Homeworks/UnitTests/src/PromoCodeFactory.DataAccess --startup-project Homeworks/UnitTests/src/PromoCodeFactory.WebHost --connection "Host=localhost;Database=promocode_factory_ci;Username=postgres;Password=ci_password;Port=5432"
+
+      - name: Run tests
+        run: dotnet test Homeworks/UnitTests/src/PromoCodeFactory.sln --no-build --configuration Release --verbosity normal

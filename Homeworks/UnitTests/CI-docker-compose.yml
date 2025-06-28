@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных для CI
+  promocode-factory-db-ci:
+    image: postgres:15-alpine
+    container_name: 'promocode-factory-db-ci'
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: promocode_factory_ci
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ci_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_ci_data:/var/lib/postgresql/data
+      - ./src/PromoCodeFactory.DataAccess/Scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d promocode_factory_ci"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API приложение для CI
+  promocode-factory-api-ci:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      target: ci
+    container_name: 'promocode-factory-api-ci'
+    restart: always
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=CI
+      - ConnectionStrings__PromoCodeFactoryDb=Host=promocode-factory-db-ci;Database=promocode_factory_ci;Username=postgres;Password=ci_password;Port=5432
+    depends_on:
+      promocode-factory-db-ci:
+        condition: service_healthy
+    volumes:
+      - ./src/PromoCodeFactory.DataAccess/Scripts:/scripts
+
+volumes:
+  postgres_ci_data:
+    driver: local
