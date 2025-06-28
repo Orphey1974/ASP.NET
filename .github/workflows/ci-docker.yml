@@ -36,10 +36,10 @@ jobs:
           dotnet-version: '7.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore UnitTests/src/PromoCodeFactory.sln
+        run: dotnet restore Homeworks/UnitTests/src/PromoCodeFactory.sln
 
       - name: Build
-        run: dotnet build UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
+        run: dotnet build Homeworks/UnitTests/src/PromoCodeFactory.sln --no-restore --configuration Release
 
       - name: Wait for PostgreSQL
         run: |
@@ -54,7 +54,7 @@ jobs:
         run: |
           dotnet tool install --global dotnet-ef
           export PATH="$PATH:/home/runner/.dotnet/tools"
-          dotnet ef database update --project UnitTests/src/PromoCodeFactory.DataAccess --startup-project UnitTests/src/PromoCodeFactory.WebHost --connection "Host=localhost;Database=promocode_factory_ci;Username=postgres;Password=ci_password;Port=5432"
+          dotnet ef database update --project Homeworks/UnitTests/src/PromoCodeFactory.DataAccess --startup-project Homeworks/UnitTests/src/PromoCodeFactory.WebHost --connection "Host=localhost;Database=promocode_factory_ci;Username=postgres;Password=ci_password;Port=5432"
 
       - name: Run tests
-        run: dotnet test UnitTests/src/PromoCodeFactory.sln --no-build --configuration Release --verbosity normal
+        run: dotnet test Homeworks/UnitTests/src/PromoCodeFactory.sln --no-build --configuration Release --verbosity normal
