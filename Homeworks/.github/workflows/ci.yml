@@ -1,10 +1,10 @@
-name: CI
+name: CI-docker
 
 on:
   push:
     branches: [ master, main, feature/* ]
   pull_request:
-    branches: [ master, main, feature/* ]
+    branches: [ master, main ]
 
 jobs:
   build:
@@ -57,4 +57,4 @@ jobs:
           dotnet ef database update --project UnitTests/src/PromoCodeFactory.DataAccess --startup-project UnitTests/src/PromoCodeFactory.WebHost --connection "Host=localhost;Database=promocode_factory_ci;Username=postgres;Password=ci_password;Port=5432"
 
       - name: Run tests
-        run: dotnet test UnitTests/src/PromoCodeFactory.sln --no-build --configuration Release --verbosity normal
+        run: dotnet test UnitTests/src/PromoCodeFactory.sln --no-build --configuration Release
