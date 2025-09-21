@@ -78,21 +78,28 @@ namespace Pcf.Administration.DataAccess.Repositories
 
         public async Task UpdateAsync(Employee entity)
         {
-            // Для упрощения, получаем все записи, находим нужную и обновляем
-            var allEmployees = await GetAllAsync();
-            var existingEmployee = allEmployees.FirstOrDefault(e => e.Email == entity.Email);
-            if (existingEmployee != null)
+            // Находим существующий документ по ID
+            var filter = Builders<EmployeeDocument>.Filter.Eq(e => e.Id, entity.Id);
+            var existingDocument = await _employeeCollection.Find(filter).FirstOrDefaultAsync();
+
+            if (existingDocument != null)
             {
-                var document = entity.ToDocument();
-                // В реальном проекте здесь нужно сохранить оригинальный ObjectId
-                await _employeeCollection.InsertOneAsync(document);
+                // Обновляем существующий документ
+                var update = Builders<EmployeeDocument>.Update
+                    .Set(e => e.FirstName, entity.FirstName)
+                    .Set(e => e.LastName, entity.LastName)
+                    .Set(e => e.Email, entity.Email)
+                    .Set(e => e.RoleId, entity.RoleId)
+                    .Set(e => e.AppliedPromocodesCount, entity.AppliedPromocodesCount);
+
+                await _employeeCollection.UpdateOneAsync(filter, update);
             }
         }
 
         public async Task DeleteAsync(Employee entity)
         {
-            // Для упрощения, удаляем по email
-            var filter = Builders<EmployeeDocument>.Filter.Eq(e => e.Email, entity.Email);
+            // Удаляем по ID
+            var filter = Builders<EmployeeDocument>.Filter.Eq(e => e.Id, entity.Id);
             await _employeeCollection.DeleteOneAsync(filter);
         }
     }
