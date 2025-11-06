@@ -46,8 +46,10 @@ services:
       - "ConnectionStrings:PromocodeFactoryReceivingFromPartnerDb=Host=promocode-factory-receiving-from-partner-db;Database=promocode_factory_receiving_from_partner_db;Username=postgres;Password=docker"
       - "IntegrationSettings:GivingToCustomerApiUrl=http://promocode-factory-giving-to-customer-api"
       - "IntegrationSettings:AdministrationApiUrl=http://promocode-factory-administration-api"
+      - "IntegrationSettings:PreferencesApiUrl=http://promocode-factory-preferences-api:8080"
     depends_on:
       - promocode-factory-receiving-from-partner-db
+      - promocode-factory-preferences-api
 
   #GivingToCustomer Db
   promocode-factory-giving-to-customer-db:
@@ -93,6 +95,7 @@ services:
     environment:
       - "ConnectionStrings:DefaultConnection=Data Source=/app/data/preferences.db"
       - "ConnectionStrings:Redis=promocode-factory-redis:6379"
+      - "CacheSettings:UseRedis=true"
     volumes:
       - preferences_data:/app/data
     depends_on:

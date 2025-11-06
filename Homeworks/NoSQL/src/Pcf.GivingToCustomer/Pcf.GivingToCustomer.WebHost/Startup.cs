@@ -86,8 +86,8 @@ namespace Pcf.GivingToCustomer.WebHost
                 endpoints.MapControllers();
             });
 
-            // Временно отключаем инициализацию базы данных для отладки
-            // dbInitializer.InitializeDb();
+            // Инициализация базы данных
+            dbInitializer.InitializeDb();
         }
     }
 }
