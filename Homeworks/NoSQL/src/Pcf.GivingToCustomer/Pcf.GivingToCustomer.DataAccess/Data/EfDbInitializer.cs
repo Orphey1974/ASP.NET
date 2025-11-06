@@ -21,6 +21,10 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
             // Добавляем тестовых клиентов
             _dataContext.AddRange(FakeDataFactory.Customers);
             _dataContext.SaveChanges();
+
+            // Добавляем тестовые промокоды
+            _dataContext.AddRange(FakeDataFactory.PromoCodes);
+            _dataContext.SaveChanges();
         }
     }
 }

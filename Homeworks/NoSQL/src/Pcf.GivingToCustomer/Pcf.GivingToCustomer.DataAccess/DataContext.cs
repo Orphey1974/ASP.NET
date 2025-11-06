@@ -34,6 +34,10 @@ namespace Pcf.GivingToCustomer.DataAccess
             // Игнорируем навигационное свойство Preference, чтобы не создавать внешний ключ
             modelBuilder.Entity<CustomerPreference>()
                 .Ignore(bc => bc.Preference);
+
+            // Игнорируем навигационное свойство Preference в PromoCode
+            modelBuilder.Entity<PromoCode>()
+                .Ignore(pc => pc.Preference);
         }
     }
 }
