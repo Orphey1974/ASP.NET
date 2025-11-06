@@ -31,6 +31,9 @@ namespace Pcf.GivingToCustomer.DataAccess
                 .WithMany(b => b.Preferences)
                 .HasForeignKey(bc => bc.CustomerId);
             // Убираем связь с Preference, так как теперь используем внешний сервис
+            // Игнорируем навигационное свойство Preference, чтобы не создавать внешний ключ
+            modelBuilder.Entity<CustomerPreference>()
+                .Ignore(bc => bc.Preference);
         }
     }
 }

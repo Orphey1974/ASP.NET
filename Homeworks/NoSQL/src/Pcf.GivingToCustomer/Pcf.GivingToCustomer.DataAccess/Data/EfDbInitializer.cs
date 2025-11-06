@@ -18,9 +18,9 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
             _dataContext.Database.EnsureCreated();
 
             // Предпочтения больше не инициализируем локально - они получаются из микросервиса
-            // Временно отключаем инициализацию тестовых данных для отладки
-            // _dataContext.AddRange(FakeDataFactory.Customers);
-            // _dataContext.SaveChanges();
+            // Добавляем тестовых клиентов
+            _dataContext.AddRange(FakeDataFactory.Customers);
+            _dataContext.SaveChanges();
         }
     }
 }

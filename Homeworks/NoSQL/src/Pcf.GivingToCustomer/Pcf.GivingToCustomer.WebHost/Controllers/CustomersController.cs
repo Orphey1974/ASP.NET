@@ -57,9 +57,18 @@ namespace Pcf.GivingToCustomer.WebHost.Controllers
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<CustomerResponse>> GetCustomerAsync(Guid id)
         {
-            var customer =  await _customerRepository.GetByIdAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
 
-            var response = new CustomerResponse(customer);
+            if (customer == null)
+                return NotFound();
+
+            // Получаем предпочтения через шлюз
+            var preferenceIds = customer.Preferences?.Select(p => p.PreferenceId).ToList() ?? new List<Guid>();
+            var preferences = preferenceIds.Any()
+                ? await _preferencesGateway.GetPreferencesByIdsAsync(preferenceIds)
+                : new List<Preference>();
+
+            var response = new CustomerResponse(customer, preferences);
 
             return Ok(response);
         }
