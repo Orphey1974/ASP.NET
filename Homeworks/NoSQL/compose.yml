@@ -67,8 +67,38 @@ services:
       - "8093:8080"
     environment:
       - "ConnectionStrings:PromocodeFactoryGivingToCustomerDb=Host=promocode-factory-giving-to-customer-db;Database=promocode_factory_giving_to_customer_db;Username=postgres;Password=docker"
+      - "IntegrationSettings:PreferencesApiUrl=http://promocode-factory-preferences-api"
     depends_on:
       - promocode-factory-giving-to-customer-db
+      - promocode-factory-preferences-api
+
+  #Redis Cache
+  promocode-factory-redis:
+    image: "redis:7-alpine"
+    container_name: 'promocode-factory-redis'
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  #Preferences Api
+  promocode-factory-preferences-api:
+    build: src/Pcf.Preferences/
+    container_name: 'promocode-factory-preferences-api'
+    restart: always
+    ports:
+      - "8094:8080"
+    environment:
+      - "ConnectionStrings:DefaultConnection=Data Source=/app/data/preferences.db"
+      - "ConnectionStrings:Redis=promocode-factory-redis:6379"
+    volumes:
+      - preferences_data:/app/data
+    depends_on:
+      - promocode-factory-redis
 
 volumes:
   mongodb_data:
+  redis_data:
+  preferences_data:

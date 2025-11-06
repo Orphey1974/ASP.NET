@@ -6,25 +6,8 @@ namespace Pcf.ReceivingFromPartner.DataAccess.Data
 {
     public static class FakeDataFactory
     {
-        public static List<Preference> Preferences => new List<Preference>()
-        {
-            new Preference()
-            {
-                Id = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c"),
-                Name = "Театр",
-            },
-            new Preference()
-            {
-                Id = Guid.Parse("c4bda62e-fc74-4256-a956-4760b3858cbd"),
-                Name = "Семья",
-            },
-            new Preference()
-            {
-                Id = Guid.Parse("76324c47-68d2-472d-abb8-33cfa8cc0c84"),
-                Name = "Дети",
-            }
-        };
-        
+        // Предпочтения теперь получаются из микросервиса предпочтений
+
         public static List<Partner> Partners => new List<Partner>()
         {
             new Partner()
@@ -39,7 +22,7 @@ namespace Pcf.ReceivingFromPartner.DataAccess.Data
                         Id = Guid.Parse("e00633a5-978a-420e-a7d6-3e1dab116393"),
                         CreateDate = new DateTime(2020, 07, 9).ToUniversalTime(),
                         EndDate = new DateTime(2020, 10, 9).ToUniversalTime(),
-                        Limit = 100 
+                        Limit = 100
                     }
                 }
             },
@@ -56,14 +39,14 @@ namespace Pcf.ReceivingFromPartner.DataAccess.Data
                         CreateDate = new DateTime(2020, 05, 3).ToUniversalTime(),
                         EndDate = new DateTime(2020, 10, 15).ToUniversalTime(),
                         CancelDate = new DateTime(2020, 06, 16).ToUniversalTime(),
-                        Limit = 1000 
+                        Limit = 1000
                     },
                     new PartnerPromoCodeLimit()
                     {
                         Id = Guid.Parse("0e94624b-1ff9-430e-ba8d-ef1e3b77f2d5"),
                         CreateDate = new DateTime(2020, 05, 3).ToUniversalTime(),
                         EndDate = new DateTime(2020, 10, 15).ToUniversalTime(),
-                        Limit = 100 
+                        Limit = 100
                     },
                 }
             },
@@ -79,7 +62,7 @@ namespace Pcf.ReceivingFromPartner.DataAccess.Data
                         Id = Guid.Parse("0691bb24-5fd9-4a52-a11c-34bb8bc9364e"),
                         CreateDate = new DateTime(2020, 07, 3).ToUniversalTime(),
                         EndDate = DateTime.Now.AddMonths(1).ToUniversalTime(),
-                        Limit = 100 
+                        Limit = 100
                     }
                 }
             },
@@ -95,7 +78,7 @@ namespace Pcf.ReceivingFromPartner.DataAccess.Data
                         Id = Guid.Parse("93f3a79d-e9f9-47e6-98bb-1f618db43230"),
                         CreateDate = new DateTime(2020,09,6).ToUniversalTime(),
                         EndDate = DateTime.Now.AddMonths(1).ToUniversalTime(),
-                        Limit = 15 
+                        Limit = 15
                     }
                 }
             }

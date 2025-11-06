@@ -61,12 +61,12 @@ namespace Pcf.Administration.WebHost.Controllers
             {
                 Id = employee.Id,
                 Email = employee.Email,
-                Role = new RoleItemResponse()
+                Role = employee.Role != null ? new RoleItemResponse()
                 {
                     Id = employee.Role.Id,
                     Name = employee.Role.Name,
                     Description = employee.Role.Description
-                },
+                } : null,
                 FullName = employee.FullName,
                 AppliedPromocodesCount = employee.AppliedPromocodesCount
             };

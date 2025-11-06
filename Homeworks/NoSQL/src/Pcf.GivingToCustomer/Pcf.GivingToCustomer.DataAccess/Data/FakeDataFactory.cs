@@ -7,25 +7,8 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
 {
     public static class FakeDataFactory
     {
-        
-        public static List<Preference> Preferences => new List<Preference>()
-        {
-            new Preference()
-            {
-                Id = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c"),
-                Name = "Театр",
-            },
-            new Preference()
-            {
-                Id = Guid.Parse("c4bda62e-fc74-4256-a956-4760b3858cbd"),
-                Name = "Семья",
-            },
-            new Preference()
-            {
-                Id = Guid.Parse("76324c47-68d2-472d-abb8-33cfa8cc0c84"),
-                Name = "Дети",
-            }
-        };
+
+        // Предпочтения теперь получаются из микросервиса предпочтений
 
         public static List<Customer> Customers
         {
@@ -45,12 +28,12 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
                             new CustomerPreference()
                             {
                                 CustomerId = customerId,
-                                PreferenceId = Guid.Parse("76324c47-68d2-472d-abb8-33cfa8cc0c84")
+                                PreferenceId = Guid.Parse("11111111-1111-1111-1111-111111111111") // Электроника
                             },
                             new CustomerPreference()
                             {
                                 CustomerId = customerId,
-                                PreferenceId = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c")
+                                PreferenceId = Guid.Parse("22222222-2222-2222-2222-222222222222") // Одежда
                             }
                         }
                     }
