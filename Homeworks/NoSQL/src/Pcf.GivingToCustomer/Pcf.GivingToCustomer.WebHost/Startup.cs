@@ -28,16 +28,22 @@ namespace Pcf.GivingToCustomer.WebHost
         {
             Configuration = configuration;
         }
-        
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddMvcOptions(x=> 
+            services.AddControllers().AddMvcOptions(x=>
                 x.SuppressAsyncSuffixInActionNames = false);
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
             services.AddScoped<INotificationGateway, NotificationGateway>();
             services.AddScoped<IDbInitializer, EfDbInitializer>();
+
+            // HTTP клиент для микросервиса предпочтений
+            services.AddHttpClient<IPreferencesGateway, PreferencesGateway>(client =>
+            {
+                client.BaseAddress = new Uri(Configuration["IntegrationSettings:PreferencesApiUrl"]);
+            });
             services.AddDbContext<DataContext>(x =>
             {
                 //x.UseSqlite("Filename=PromocodeFactoryGivingToCustomerDb.sqlite");
@@ -70,7 +76,7 @@ namespace Pcf.GivingToCustomer.WebHost
             {
                 x.DocExpansion = "list";
             });
-            
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -79,7 +85,8 @@ namespace Pcf.GivingToCustomer.WebHost
             {
                 endpoints.MapControllers();
             });
-            
+
+            // Инициализация базы данных
             dbInitializer.InitializeDb();
         }
     }

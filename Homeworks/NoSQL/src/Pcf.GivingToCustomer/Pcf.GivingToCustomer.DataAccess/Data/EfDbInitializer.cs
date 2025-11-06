@@ -11,16 +11,19 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
         {
             _dataContext = dataContext;
         }
-        
+
         public void InitializeDb()
         {
             _dataContext.Database.EnsureDeleted();
             _dataContext.Database.EnsureCreated();
 
-            _dataContext.AddRange(FakeDataFactory.Preferences);
-            _dataContext.SaveChanges();
-            
+            // Предпочтения больше не инициализируем локально - они получаются из микросервиса
+            // Добавляем тестовых клиентов
             _dataContext.AddRange(FakeDataFactory.Customers);
+            _dataContext.SaveChanges();
+
+            // Добавляем тестовые промокоды
+            _dataContext.AddRange(FakeDataFactory.PromoCodes);
             _dataContext.SaveChanges();
         }
     }

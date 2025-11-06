@@ -7,25 +7,8 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
 {
     public static class FakeDataFactory
     {
-        
-        public static List<Preference> Preferences => new List<Preference>()
-        {
-            new Preference()
-            {
-                Id = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c"),
-                Name = "Театр",
-            },
-            new Preference()
-            {
-                Id = Guid.Parse("c4bda62e-fc74-4256-a956-4760b3858cbd"),
-                Name = "Семья",
-            },
-            new Preference()
-            {
-                Id = Guid.Parse("76324c47-68d2-472d-abb8-33cfa8cc0c84"),
-                Name = "Дети",
-            }
-        };
+
+        // Предпочтения теперь получаются из микросервиса предпочтений
 
         public static List<Customer> Customers
         {
@@ -45,18 +28,52 @@ namespace Pcf.GivingToCustomer.DataAccess.Data
                             new CustomerPreference()
                             {
                                 CustomerId = customerId,
-                                PreferenceId = Guid.Parse("76324c47-68d2-472d-abb8-33cfa8cc0c84")
+                                PreferenceId = Guid.Parse("11111111-1111-1111-1111-111111111111") // Электроника
                             },
                             new CustomerPreference()
                             {
                                 CustomerId = customerId,
-                                PreferenceId = Guid.Parse("ef7f299f-92d7-459f-896e-078ed53ef99c")
+                                PreferenceId = Guid.Parse("22222222-2222-2222-2222-222222222222") // Одежда
                             }
                         }
                     }
                 };
 
                 return customers;
+            }
+        }
+
+        public static List<PromoCode> PromoCodes
+        {
+            get
+            {
+                var customerId = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0");
+                var promoCodeId = Guid.Parse("b6c8c6b1-4349-45b0-ab31-244740aaf0f0");
+
+                var promoCodes = new List<PromoCode>()
+                {
+                    new PromoCode()
+                    {
+                        Id = promoCodeId,
+                        Code = "PROMO2024",
+                        ServiceInfo = "Тестовый промокод для электроники",
+                        BeginDate = DateTime.UtcNow.AddDays(-30),
+                        EndDate = DateTime.UtcNow.AddDays(30),
+                        PartnerId = Guid.Parse("7d994823-86a1-4d65-bda5-8b7924218a19"),
+                        PreferenceId = Guid.Parse("11111111-1111-1111-1111-111111111111"), // Электроника
+                        Customers = new List<PromoCodeCustomer>()
+                        {
+                            new PromoCodeCustomer()
+                            {
+                                Id = Guid.NewGuid(),
+                                PromoCodeId = promoCodeId,
+                                CustomerId = customerId
+                            }
+                        }
+                    }
+                };
+
+                return promoCodes;
             }
         }
     }

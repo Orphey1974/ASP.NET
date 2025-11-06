@@ -10,14 +10,12 @@ namespace Pcf.GivingToCustomer.DataAccess
         public DbSet<PromoCode> PromoCodes { get; set; }
 
         public DbSet<Customer> Customers { get; set; }
-        
-        public DbSet<Preference> Preferences { get; set; }
 
         public DataContext()
         {
-            
+
         }
-        
+
         public DataContext(DbContextOptions<DataContext> options)
             : base(options)
         {
@@ -31,11 +29,15 @@ namespace Pcf.GivingToCustomer.DataAccess
             modelBuilder.Entity<CustomerPreference>()
                 .HasOne(bc => bc.Customer)
                 .WithMany(b => b.Preferences)
-                .HasForeignKey(bc => bc.CustomerId);  
+                .HasForeignKey(bc => bc.CustomerId);
+            // Убираем связь с Preference, так как теперь используем внешний сервис
+            // Игнорируем навигационное свойство Preference, чтобы не создавать внешний ключ
             modelBuilder.Entity<CustomerPreference>()
-                .HasOne(bc => bc.Preference)
-                .WithMany()
-                .HasForeignKey(bc => bc.PreferenceId); 
+                .Ignore(bc => bc.Preference);
+
+            // Игнорируем навигационное свойство Preference в PromoCode
+            modelBuilder.Entity<PromoCode>()
+                .Ignore(pc => pc.Preference);
         }
     }
 }

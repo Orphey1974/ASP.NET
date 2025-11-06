@@ -20,19 +20,19 @@ using Microsoft.AspNetCore.Mvc;
         : ControllerBase
     {
         private readonly IRepository<Partner> _partnersRepository;
-        private readonly IRepository<Preference> _preferencesRepository;
+        private readonly IPreferencesGateway _preferencesGateway;
         private readonly INotificationGateway _notificationGateway;
         private readonly IGivingPromoCodeToCustomerGateway _givingPromoCodeToCustomerGateway;
         private readonly IAdministrationGateway _administrationGateway;
 
         public PartnersController(IRepository<Partner> partnersRepository,
-            IRepository<Preference> preferencesRepository, 
+            IPreferencesGateway preferencesGateway,
             INotificationGateway notificationGateway,
             IGivingPromoCodeToCustomerGateway givingPromoCodeToCustomerGateway,
             IAdministrationGateway administrationGateway)
         {
             _partnersRepository = partnersRepository;
-            _preferencesRepository = preferencesRepository;
+            _preferencesGateway = preferencesGateway;
             _notificationGateway = notificationGateway;
             _givingPromoCodeToCustomerGateway = givingPromoCodeToCustomerGateway;
             _administrationGateway = administrationGateway;
@@ -66,7 +66,7 @@ using Microsoft.AspNetCore.Mvc;
 
             return Ok(response);
         }
-        
+
         /// <summary>
         /// Получить информацию партнере
         /// </summary>
@@ -101,7 +101,7 @@ using Microsoft.AspNetCore.Mvc;
 
             return Ok(response);
         }
-        
+
         /// <summary>
         /// Установить лимит на промокоды для партнера
         /// </summary>
@@ -112,29 +112,29 @@ using Microsoft.AspNetCore.Mvc;
 
             if (partner == null)
                 return NotFound();
-            
+
             //Если партнер заблокирован, то нужно выдать исключение
             if (!partner.IsActive)
                 return BadRequest("Данный партнер не активен");
-            
+
             //Установка лимита партнеру
-            var activeLimit = partner.PartnerLimits.FirstOrDefault(x => 
+            var activeLimit = partner.PartnerLimits.FirstOrDefault(x =>
                 !x.CancelDate.HasValue);
-            
+
             if (activeLimit != null)
             {
-                //Если партнеру выставляется лимит, то мы 
-                //должны обнулить количество промокодов, которые партнер выдал, если лимит закончился, 
+                //Если партнеру выставляется лимит, то мы
+                //должны обнулить количество промокодов, которые партнер выдал, если лимит закончился,
                 //то количество не обнуляется
                 partner.NumberIssuedPromoCodes = 0;
-                
+
                 //При установке лимита нужно отключить предыдущий лимит
                 activeLimit.CancelDate = DateTime.Now;
             }
 
             if (request.Limit <= 0)
                 return BadRequest("Лимит должен быть больше 0");
-            
+
             var newLimit = new PartnerPromoCodeLimit()
             {
                 Limit = request.Limit,
@@ -143,17 +143,17 @@ using Microsoft.AspNetCore.Mvc;
                 CreateDate = DateTime.Now,
                 EndDate = request.EndDate
             };
-            
+
             partner.PartnerLimits.Add(newLimit);
 
             await _partnersRepository.UpdateAsync(partner);
-            
+
             await _notificationGateway
                 .SendNotificationToPartnerAsync(partner.Id, "Вам установлен лимит на отправку промокодов...");
-            
+
             return CreatedAtAction(nameof(GetPartnerLimitAsync), new {id = partner.Id, limitId = newLimit.Id}, null);
         }
-        
+
         /// <summary>
         /// Получить лимит на промокоды для партнера
         /// </summary>
@@ -166,7 +166,7 @@ using Microsoft.AspNetCore.Mvc;
 
             if (partner == null)
                 return NotFound();
-            
+
             var limit = partner.PartnerLimits
                 .FirstOrDefault(x => x.Id == limitId);
 
@@ -179,7 +179,7 @@ using Microsoft.AspNetCore.Mvc;
                 EndDate = limit.EndDate.ToString("dd.MM.yyyy hh:mm:ss"),
                 CancelDate = limit.CancelDate?.ToString("dd.MM.yyyy hh:mm:ss"),
             };
-            
+
             return Ok(response);
         }
 
@@ -191,18 +191,18 @@ using Microsoft.AspNetCore.Mvc;
         public async Task<IActionResult> CancelPartnerPromoCodeLimitAsync(Guid id)
         {
             var partner = await _partnersRepository.GetByIdAsync(id);
-            
+
             if (partner == null)
                 return NotFound();
-            
+
             //Если партнер заблокирован, то нужно выдать исключение
             if (!partner.IsActive)
                 return BadRequest("Данный партнер не активен");
-            
+
             //Отключение лимита
-            var activeLimit = partner.PartnerLimits.FirstOrDefault(x => 
+            var activeLimit = partner.PartnerLimits.FirstOrDefault(x =>
                 !x.CancelDate.HasValue);
-            
+
             if (activeLimit != null)
             {
                 activeLimit.CancelDate = DateTime.Now;
@@ -213,10 +213,10 @@ using Microsoft.AspNetCore.Mvc;
             //Отправляем уведомление
             await _notificationGateway
                 .SendNotificationToPartnerAsync(partner.Id, "Ваш лимит на отправку промокодов отменен...");
-            
+
             return NoContent();
         }
-        
+
         /// <summary>
         /// Получить промокод партнера по id
         /// </summary>
@@ -225,12 +225,12 @@ using Microsoft.AspNetCore.Mvc;
         public async Task<IActionResult> GetPartnerPromoCodesAsync(Guid id)
         {
             var partner = await _partnersRepository.GetByIdAsync(id);
-            
+
             if (partner == null)
             {
                 return NotFound("Партнер не найден");
             }
-            
+
             var response = partner.PromoCodes
                 .Select(x => new PromoCodeShortResponse()
             {
@@ -245,7 +245,7 @@ using Microsoft.AspNetCore.Mvc;
 
             return Ok(response);
         }
-        
+
         /// <summary>
         /// Получить промокод партнера по id
         /// </summary>
@@ -254,7 +254,7 @@ using Microsoft.AspNetCore.Mvc;
         public async Task<IActionResult> GetPartnerPromoCodeAsync(Guid id, Guid promoCodeId)
         {
             var partner = await _partnersRepository.GetByIdAsync(id);
-            
+
             if (partner == null)
             {
                 return NotFound("Партнер не найден");
@@ -266,7 +266,7 @@ using Microsoft.AspNetCore.Mvc;
             {
                 return NotFound("Партнер не найден");
             }
-            
+
             var response =  new PromoCodeShortResponse()
                 {
                     Id = promoCode.Id,
@@ -280,9 +280,9 @@ using Microsoft.AspNetCore.Mvc;
 
             return Ok(response);
         }
-        
+
         /// <summary>
-        /// Создать промокод от партнера 
+        /// Создать промокод от партнера
         /// </summary>
         /// <param name="id">Id партнера, например: <example>20d2d612-db93-4ed5-86b1-ff2413bca655</example></param>
         /// <param name="request">Данные запроса/example></param>
@@ -292,7 +292,7 @@ using Microsoft.AspNetCore.Mvc;
             ReceivingPromoCodeRequest request)
         {
             var partner = await _partnersRepository.GetByIdAsync(id);
-            
+
             if (partner == null)
             {
                 return BadRequest("Партнер не найден");
@@ -316,8 +316,8 @@ using Microsoft.AspNetCore.Mvc;
                 return BadRequest("Данный промокод уже был выдан ранее");
             }
 
-            //Получаем предпочтение по имени
-            var preference = await _preferencesRepository.GetByIdAsync(request.PreferenceId);
+            //Получаем предпочтение по ID через шлюз
+            var preference = await _preferencesGateway.GetPreferenceByIdAsync(request.PreferenceId);
 
             if (preference == null)
             {
@@ -329,7 +329,7 @@ using Microsoft.AspNetCore.Mvc;
             partner.NumberIssuedPromoCodes++;
 
             await _partnersRepository.UpdateAsync(partner);
-            
+
             //TODO: Чтобы информация о том, что промокод был выдан парнером была отправлена
             //в микросервис рассылки клиентам нужно либо вызвать его API, либо отправить событие в очередь
             await _givingPromoCodeToCustomerGateway.GivePromoCodeToCustomer(promoCode);
@@ -339,10 +339,10 @@ using Microsoft.AspNetCore.Mvc;
 
             if (request.PartnerManagerId.HasValue)
             {
-                await _administrationGateway.NotifyAdminAboutPartnerManagerPromoCode(request.PartnerManagerId.Value);   
+                await _administrationGateway.NotifyAdminAboutPartnerManagerPromoCode(request.PartnerManagerId.Value);
             }
 
-            return CreatedAtAction(nameof(GetPartnerPromoCodeAsync), 
+            return CreatedAtAction(nameof(GetPartnerPromoCodeAsync),
                 new {id = partner.Id, promoCodeId = promoCode.Id}, null);
         }
     }
