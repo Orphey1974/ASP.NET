@@ -56,6 +56,7 @@ namespace Pcf.GivingToCustomer.WebHost.Controllers
         /// <summary>
         /// Создать промокод и выдать его клиентам с указанным предпочтением
         /// </summary>
+        /// <param name="request">Данные запроса. Все GUID должны быть в формате: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"</param>
         /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> GivePromoCodesToCustomersWithPreferenceAsync(GivePromoCodeRequest request)

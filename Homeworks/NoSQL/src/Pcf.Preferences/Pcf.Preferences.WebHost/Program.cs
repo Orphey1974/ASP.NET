@@ -8,6 +8,9 @@ using Pcf.Preferences.DataAccess.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Явно указываем порт для предотвращения конфликтов
+builder.WebHost.UseUrls("http://localhost:8094");
+
 // Add services to the container.
 builder.Services.AddControllers();
 

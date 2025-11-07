@@ -25,16 +25,22 @@ docker-compose up -d promocode-factory-administration-mongodb promocode-factory-
 
 ### 2. Запуск микросервисов
 
+**⚠️ ВАЖНО:** Для корректной работы системы необходимо запустить **ВСЕ** микросервисы одновременно, так как они зависят друг от друга:
+- **Preferences API** (порт 8094) - требуется для GivingToCustomer и ReceivingFromPartner
+- **GivingToCustomer API** (порт 8093) - требуется для ReceivingFromPartner
+- **Administration API** (порт 8091) - требуется для ReceivingFromPartner
+- **ReceivingFromPartner API** (порт 8092) - основной сервис
+
 #### Вариант 1: Через F5 в VS Code (рекомендуется)
 
 1. Нажмите **F5** в VS Code
 2. Выберите одну из конфигураций:
-   - **Run All Microservices (Clean, Build, Run)** - запуск всех микросервисов с полной пересборкой
-   - **Run All Microservices (Build Only)** - быстрый запуск всех микросервисов
-   - **Run Administration (Clean, Build, Run)** - запуск только Administration
-   - **Run GivingToCustomer (Clean, Build, Run)** - запуск только GivingToCustomer
-   - **Run ReceivingFromPartner (Clean, Build, Run)** - запуск только ReceivingFromPartner
-   - **Run Preferences (Clean, Build, Run)** - запуск только Preferences
+   - **Run All Microservices (Clean, Build, Run)** - запуск всех микросервисов с полной пересборкой ⭐ **РЕКОМЕНДУЕТСЯ**
+   - **Run All Microservices (Build Only)** - быстрый запуск всех микросервисов ⭐ **РЕКОМЕНДУЕТСЯ**
+   - **Run Administration (Clean, Build, Run)** - запуск только Administration (не рекомендуется для полной функциональности)
+   - **Run GivingToCustomer (Clean, Build, Run)** - запуск только GivingToCustomer (не рекомендуется для полной функциональности)
+   - **Run ReceivingFromPartner (Clean, Build, Run)** - запуск только ReceivingFromPartner (не рекомендуется для полной функциональности)
+   - **Run Preferences (Clean, Build, Run)** - запуск только Preferences (не рекомендуется для полной функциональности)
 
 **Примечание:** При запуске через F5 базы данных запускаются автоматически через preLaunchTask.
 
@@ -48,7 +54,7 @@ docker-compose up -d promocode-factory-administration-mongodb promocode-factory-
      - `Pcf.Administration.WebHost`
      - `Pcf.GivingToCustomer.WebHost`
      - `Pcf.ReceivingFromPartner.WebHost`
-     - `Pcf.Preferences.WebHost` (опционально)
+     - `Pcf.Preferences.WebHost` ⚠️ **ОБЯЗАТЕЛЬНО** - требуется для работы GivingToCustomer и ReceivingFromPartner
 3. Нажмите **F5** для запуска
 
 #### Вариант 3: Через командную строку
@@ -74,6 +80,27 @@ dotnet run --project src/Pcf.Preferences/Pcf.Preferences.WebHost
 ## Работа с API
 
 Все API имеют Swagger UI с примерами данных для тестирования. Swagger автоматически открывается при запуске через F5.
+
+## Устранение проблем
+
+### Ошибка подключения к Preferences API (localhost:8094)
+
+Если вы получаете ошибку `Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение` при обращении к порту 8094:
+
+1. **Убедитесь, что Preferences API запущен:**
+   - Проверьте, что процесс `Pcf.Preferences.WebHost` запущен
+   - Проверьте доступность по адресу: http://localhost:8094/swagger
+
+2. **Запустите все микросервисы:**
+   - Используйте конфигурацию **Run All Microservices** в VS Code
+   - Или запустите все проекты в Visual Studio/Rider одновременно
+
+3. **Проверьте порядок запуска:**
+   - Сначала запустите **Preferences API** (порт 8094)
+   - Затем запустите остальные микросервисы
+
+4. **Проверьте конфигурацию:**
+   - Убедитесь, что в `appsettings.Development.json` указан правильный URL: `http://localhost:8094`
 
 ## Остановка баз данных
 

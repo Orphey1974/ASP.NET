@@ -18,6 +18,10 @@ namespace Pcf.GivingToCustomer.WebHost
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseUrls("http://localhost:8093");
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }
