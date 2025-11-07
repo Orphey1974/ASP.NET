@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Configuration;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,7 @@ using Pcf.ReceivingFromPartner.DataAccess;
 using Pcf.ReceivingFromPartner.DataAccess.Data;
 using Pcf.ReceivingFromPartner.DataAccess.Repositories;
 using Pcf.ReceivingFromPartner.Integration;
+using Pcf.ReceivingFromPartner.WebHost.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace Pcf.ReceivingFromPartner.WebHost
@@ -51,6 +53,27 @@ namespace Pcf.ReceivingFromPartner.WebHost
 
             // HTTP клиент для микросервиса предпочтений
             services.AddHttpClient<IPreferencesGateway, PreferencesGateway>();
+
+            // Настройка RabbitMQ
+            var rabbitMqSettings = Configuration.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
+            if (rabbitMqSettings != null)
+            {
+                services.AddMassTransit(x =>
+                {
+                    x.AddConsumer<Pcf.ReceivingFromPartner.Integration.Consumers.PartnerNotificationConsumer>();
+
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.Port, rabbitMqSettings.VirtualHost, h =>
+                        {
+                            h.Username(rabbitMqSettings.Username);
+                            h.Password(rabbitMqSettings.Password);
+                        });
+
+                        cfg.ConfigureEndpoints(context);
+                    });
+                });
+            }
 
             services.AddDbContext<DataContext>(x =>
             {
