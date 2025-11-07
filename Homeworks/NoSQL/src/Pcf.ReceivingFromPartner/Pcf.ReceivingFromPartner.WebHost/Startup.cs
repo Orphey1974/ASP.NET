@@ -61,7 +61,8 @@ namespace Pcf.ReceivingFromPartner.WebHost
 
                     x.UsingRabbitMq((context, cfg) =>
                     {
-                        cfg.Host(rabbitMqSettings.Host, rabbitMqSettings.Port, rabbitMqSettings.VirtualHost, h =>
+                        var uri = $"rabbitmq://{rabbitMqSettings.Host}:{rabbitMqSettings.Port}{rabbitMqSettings.VirtualHost}";
+                        cfg.Host(uri, h =>
                         {
                             h.Username(rabbitMqSettings.Username);
                             h.Password(rabbitMqSettings.Password);

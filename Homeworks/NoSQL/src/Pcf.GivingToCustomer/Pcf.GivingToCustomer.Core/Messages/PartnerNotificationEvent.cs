@@ -1,3 +1,5 @@
+using System;
+
 namespace Pcf.GivingToCustomer.Core.Messages;
 
 /// <summary>

@@ -1,3 +1,5 @@
+using System;
+
 namespace Pcf.ReceivingFromPartner.Core.Messages;
 
 /// <summary>

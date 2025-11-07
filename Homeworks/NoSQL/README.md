@@ -37,6 +37,7 @@ Cистема `Promocode Factory` для выдачи промокодов па�
 ## Запуск проекта
 
 ### 1. Запуск только MongoDB
+
 ```bash
 docker-compose up promocode-factory-administration-mongodb
 ```
