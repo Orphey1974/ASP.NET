@@ -101,7 +101,22 @@ services:
     depends_on:
       - promocode-factory-redis
 
+  #RabbitMQ Message Broker
+  promocode-factory-rabbitmq:
+    image: "rabbitmq:3-management-alpine"
+    container_name: 'promocode-factory-rabbitmq'
+    restart: always
+    ports:
+      - "5672:5672"   # AMQP порт
+      - "15672:15672" # Web UI порт
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   mongodb_data:
   redis_data:
   preferences_data:
+  rabbitmq_data:
