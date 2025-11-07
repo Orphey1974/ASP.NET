@@ -1,37 +1,37 @@
-﻿using System.Net.Http;
+﻿using System;
 using System.Threading.Tasks;
+using MassTransit;
+using Pcf.GivingToCustomer.Core.Messages;
 using Pcf.ReceivingFromPartner.Core.Abstractions.Gateways;
 using Pcf.ReceivingFromPartner.Core.Domain;
-using Pcf.ReceivingFromPartner.Integration.Dto;
 
 namespace Pcf.ReceivingFromPartner.Integration
 {
-    public class GivingPromoCodeToCustomerGateway
-        : IGivingPromoCodeToCustomerGateway
+    public class GivingPromoCodeToCustomerGateway : IGivingPromoCodeToCustomerGateway
     {
-        private readonly HttpClient _httpClient;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public GivingPromoCodeToCustomerGateway(HttpClient httpClient)
+        public GivingPromoCodeToCustomerGateway(IPublishEndpoint publishEndpoint)
         {
-            _httpClient = httpClient;
+            _publishEndpoint = publishEndpoint;
         }
-        
+
         public async Task GivePromoCodeToCustomer(PromoCode promoCode)
         {
-            var dto = new GivePromoCodeToCustomerDto()
+            var @event = new GivePromoCodeToCustomerEvent
             {
+                PromoCodeId = promoCode.Id,
                 PartnerId = promoCode.Partner.Id,
                 BeginDate = promoCode.BeginDate.ToShortDateString(),
                 EndDate = promoCode.EndDate.ToShortDateString(),
                 PreferenceId = promoCode.PreferenceId,
                 PromoCode = promoCode.Code,
                 ServiceInfo = promoCode.ServiceInfo,
-                PartnerManagerId = promoCode.PartnerManagerId
+                PartnerManagerId = promoCode.PartnerManagerId,
+                CreatedAt = DateTime.UtcNow
             };
-            
-            var response = await _httpClient.PostAsJsonAsync("api/v1/promocodes", dto);
 
-            response.EnsureSuccessStatusCode();
+            await _publishEndpoint.Publish(@event);
         }
     }
 }

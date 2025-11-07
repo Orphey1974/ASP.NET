@@ -330,13 +330,10 @@ using Microsoft.AspNetCore.Mvc;
 
             await _partnersRepository.UpdateAsync(partner);
 
-            //TODO: Чтобы информация о том, что промокод был выдан парнером была отправлена
-            //в микросервис рассылки клиентам нужно либо вызвать его API, либо отправить событие в очередь
+            // Отправка события в микросервис рассылки клиентам через RabbitMQ (асинхронно)
             await _givingPromoCodeToCustomerGateway.GivePromoCodeToCustomer(promoCode);
 
-            //TODO: Чтобы информация о том, что промокод был выдан парнером была отправлена
-            //в микросервис администрирования нужно либо вызвать его API, либо отправить событие в очередь
-
+            // Отправка события в микросервис администрирования через RabbitMQ (асинхронно)
             if (request.PartnerManagerId.HasValue)
             {
                 await _administrationGateway.NotifyAdminAboutPartnerManagerPromoCode(request.PartnerManagerId.Value);

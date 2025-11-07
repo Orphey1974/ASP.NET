@@ -58,8 +58,7 @@ namespace Pcf.Administration.WebHost
             {
                 services.AddMassTransit(x =>
                 {
-                    // Регистрация consumers будет добавлена позже
-                    // x.AddConsumer<PromoCodeCreatedConsumer>();
+                    x.AddConsumer<Pcf.Administration.DataAccess.Consumers.NotifyAdminAboutPartnerManagerPromoCodeConsumer>();
 
                     x.UsingRabbitMq((context, cfg) =>
                     {

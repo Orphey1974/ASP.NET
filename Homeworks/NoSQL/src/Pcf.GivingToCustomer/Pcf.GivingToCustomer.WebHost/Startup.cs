@@ -48,6 +48,7 @@ namespace Pcf.GivingToCustomer.WebHost
                 services.AddMassTransit(x =>
                 {
                     x.AddConsumer<Pcf.GivingToCustomer.Integration.Consumers.PartnerNotificationConsumer>();
+                    x.AddConsumer<Pcf.GivingToCustomer.Integration.Consumers.GivePromoCodeToCustomerConsumer>();
 
                     x.UsingRabbitMq((context, cfg) =>
                     {
