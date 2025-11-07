@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Pcf.ReceivingFromPartner\Pcf.ReceivingFromPartner.Core\Pcf.ReceivingFromPartner.Core.csproj" />
       <ProjectReference Include="..\Pcf.Administration.Core\Pcf.Administration.Core.csproj" />
     </ItemGroup>
 

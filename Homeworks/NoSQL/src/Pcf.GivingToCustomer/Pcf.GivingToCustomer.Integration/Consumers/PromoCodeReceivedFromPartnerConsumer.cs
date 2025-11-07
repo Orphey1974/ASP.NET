@@ -6,22 +6,22 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Pcf.GivingToCustomer.Core.Abstractions.Repositories;
 using Pcf.GivingToCustomer.Core.Domain;
-using Pcf.GivingToCustomer.Core.Messages;
+using Pcf.ReceivingFromPartner.Core.Messages;
 
 namespace Pcf.GivingToCustomer.Integration.Consumers;
 
 /// <summary>
-/// Consumer для обработки события выдачи промокода клиентам
+/// Consumer для обработки события получения промокода от партнера
 /// </summary>
-public class GivePromoCodeToCustomerConsumer : IConsumer<GivePromoCodeToCustomerEvent>
+public class PromoCodeReceivedFromPartnerConsumer : IConsumer<PromoCodeReceivedFromPartnerEvent>
 {
-    private readonly ILogger<GivePromoCodeToCustomerConsumer> _logger;
+    private readonly ILogger<PromoCodeReceivedFromPartnerConsumer> _logger;
     private readonly IRepository<PromoCode> _promoCodesRepository;
     private readonly IRepository<Customer> _customersRepository;
     private readonly Pcf.GivingToCustomer.Core.Abstractions.Gateways.IPreferencesGateway _preferencesGateway;
 
-    public GivePromoCodeToCustomerConsumer(
-        ILogger<GivePromoCodeToCustomerConsumer> logger,
+    public PromoCodeReceivedFromPartnerConsumer(
+        ILogger<PromoCodeReceivedFromPartnerConsumer> logger,
         IRepository<PromoCode> promoCodesRepository,
         IRepository<Customer> customersRepository,
         Pcf.GivingToCustomer.Core.Abstractions.Gateways.IPreferencesGateway preferencesGateway)
@@ -32,12 +32,12 @@ public class GivePromoCodeToCustomerConsumer : IConsumer<GivePromoCodeToCustomer
         _preferencesGateway = preferencesGateway;
     }
 
-    public async Task Consume(ConsumeContext<GivePromoCodeToCustomerEvent> context)
+    public async Task Consume(ConsumeContext<PromoCodeReceivedFromPartnerEvent> context)
     {
         var message = context.Message;
 
         _logger.LogInformation(
-            "Получено событие выдачи промокода: PromoCodeId={PromoCodeId}, Code={Code}, PartnerId={PartnerId}",
+            "Получено событие получения промокода от партнера: PromoCodeId={PromoCodeId}, Code={Code}, PartnerId={PartnerId}",
             message.PromoCodeId,
             message.PromoCode,
             message.PartnerId);
@@ -92,7 +92,7 @@ public class GivePromoCodeToCustomerConsumer : IConsumer<GivePromoCodeToCustomer
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Ошибка при обработке события выдачи промокода: PromoCodeId={PromoCodeId}",
+                "Ошибка при обработке события получения промокода от партнера: PromoCodeId={PromoCodeId}",
                 message.PromoCodeId);
             throw;
         }

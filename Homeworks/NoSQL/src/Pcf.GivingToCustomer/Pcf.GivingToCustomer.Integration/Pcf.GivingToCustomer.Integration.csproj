@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Pcf.ReceivingFromPartner\Pcf.ReceivingFromPartner.Core\Pcf.ReceivingFromPartner.Core.csproj" />
       <ProjectReference Include="..\Pcf.GivingToCustomer.Core\Pcf.GivingToCustomer.Core.csproj" />
     </ItemGroup>
 

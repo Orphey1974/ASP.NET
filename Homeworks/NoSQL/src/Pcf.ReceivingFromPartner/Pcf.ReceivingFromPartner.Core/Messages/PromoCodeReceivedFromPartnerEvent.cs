@@ -1,9 +1,9 @@
-namespace Pcf.GivingToCustomer.Core.Messages;
+namespace Pcf.ReceivingFromPartner.Core.Messages;
 
 /// <summary>
-/// Событие выдачи промокода клиентам
+/// Событие получения промокода от партнера
 /// </summary>
-public class GivePromoCodeToCustomerEvent
+public class PromoCodeReceivedFromPartnerEvent
 {
     /// <summary>
     /// Идентификатор промокода

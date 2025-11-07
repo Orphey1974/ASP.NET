@@ -22,20 +22,17 @@ using Microsoft.AspNetCore.Mvc;
         private readonly IRepository<Partner> _partnersRepository;
         private readonly IPreferencesGateway _preferencesGateway;
         private readonly INotificationGateway _notificationGateway;
-        private readonly IGivingPromoCodeToCustomerGateway _givingPromoCodeToCustomerGateway;
-        private readonly IAdministrationGateway _administrationGateway;
+        private readonly Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway _promoCodeReceivedGateway;
 
         public PartnersController(IRepository<Partner> partnersRepository,
             IPreferencesGateway preferencesGateway,
             INotificationGateway notificationGateway,
-            IGivingPromoCodeToCustomerGateway givingPromoCodeToCustomerGateway,
-            IAdministrationGateway administrationGateway)
+            Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway promoCodeReceivedGateway)
         {
             _partnersRepository = partnersRepository;
             _preferencesGateway = preferencesGateway;
             _notificationGateway = notificationGateway;
-            _givingPromoCodeToCustomerGateway = givingPromoCodeToCustomerGateway;
-            _administrationGateway = administrationGateway;
+            _promoCodeReceivedGateway = promoCodeReceivedGateway;
         }
 
         /// <summary>
@@ -330,14 +327,8 @@ using Microsoft.AspNetCore.Mvc;
 
             await _partnersRepository.UpdateAsync(partner);
 
-            // Отправка события в микросервис рассылки клиентам через RabbitMQ (асинхронно)
-            await _givingPromoCodeToCustomerGateway.GivePromoCodeToCustomer(promoCode);
-
-            // Отправка события в микросервис администрирования через RabbitMQ (асинхронно)
-            if (request.PartnerManagerId.HasValue)
-            {
-                await _administrationGateway.NotifyAdminAboutPartnerManagerPromoCode(request.PartnerManagerId.Value);
-            }
+            // Отправка единого события в RabbitMQ для обработки микросервисами GivingToCustomer и Administration
+            await _promoCodeReceivedGateway.PublishPromoCodeReceivedEvent(promoCode);
 
             return CreatedAtAction(nameof(GetPartnerPromoCodeAsync),
                 new {id = partner.Id, promoCodeId = promoCode.Id}, null);

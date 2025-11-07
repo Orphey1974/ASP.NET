@@ -41,9 +41,8 @@ namespace Pcf.ReceivingFromPartner.WebHost
             services.AddScoped<INotificationGateway, NotificationGateway>();
             services.AddScoped<IDbInitializer, EfDbInitializer>();
 
-            // Gateway'и теперь используют RabbitMQ вместо HTTP
-            services.AddScoped<IGivingPromoCodeToCustomerGateway, GivingPromoCodeToCustomerGateway>();
-            services.AddScoped<IAdministrationGateway, AdministrationGateway>();
+            // Gateway для отправки единого события получения промокода от партнера
+            services.AddScoped<Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway>();
 
             // HTTP клиент для микросервиса предпочтений
             services.AddHttpClient<IPreferencesGateway, PreferencesGateway>();
