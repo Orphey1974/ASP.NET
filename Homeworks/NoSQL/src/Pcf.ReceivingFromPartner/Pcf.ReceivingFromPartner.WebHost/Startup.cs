@@ -44,6 +44,10 @@ namespace Pcf.ReceivingFromPartner.WebHost
             // Gateway для отправки единого события получения промокода от партнера
             services.AddScoped<Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway>();
 
+            // Сервис для работы с промокодами
+            services.AddScoped<Pcf.ReceivingFromPartner.Core.Abstractions.Services.IPromoCodeService,
+                Pcf.ReceivingFromPartner.DataAccess.Services.PromoCodeService>();
+
             // HTTP клиент для микросервиса предпочтений
             services.AddHttpClient<IPreferencesGateway, PreferencesGateway>();
 

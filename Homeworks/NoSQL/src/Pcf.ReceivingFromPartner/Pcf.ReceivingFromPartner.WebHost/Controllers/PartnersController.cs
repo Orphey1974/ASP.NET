@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
- using Pcf.ReceivingFromPartner.WebHost.Models;
- using Pcf.ReceivingFromPartner.Core.Abstractions.Gateways;
- using Pcf.ReceivingFromPartner.Core.Abstractions.Repositories;
- using Pcf.ReceivingFromPartner.Core.Domain;
- using Pcf.ReceivingFromPartner.WebHost.Mappers;
+using Pcf.ReceivingFromPartner.WebHost.Models;
+using Pcf.ReceivingFromPartner.Core.Abstractions.Gateways;
+using Pcf.ReceivingFromPartner.Core.Abstractions.Repositories;
+using Pcf.ReceivingFromPartner.Core.Domain;
 
  namespace Pcf.ReceivingFromPartner.WebHost.Controllers
 {
@@ -20,19 +19,17 @@ using Microsoft.AspNetCore.Mvc;
         : ControllerBase
     {
         private readonly IRepository<Partner> _partnersRepository;
-        private readonly IPreferencesGateway _preferencesGateway;
         private readonly INotificationGateway _notificationGateway;
-        private readonly Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway _promoCodeReceivedGateway;
+        private readonly Pcf.ReceivingFromPartner.Core.Abstractions.Services.IPromoCodeService _promoCodeService;
 
-        public PartnersController(IRepository<Partner> partnersRepository,
-            IPreferencesGateway preferencesGateway,
+        public PartnersController(
+            IRepository<Partner> partnersRepository,
             INotificationGateway notificationGateway,
-            Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway promoCodeReceivedGateway)
+            Pcf.ReceivingFromPartner.Core.Abstractions.Services.IPromoCodeService promoCodeService)
         {
             _partnersRepository = partnersRepository;
-            _preferencesGateway = preferencesGateway;
             _notificationGateway = notificationGateway;
-            _promoCodeReceivedGateway = promoCodeReceivedGateway;
+            _promoCodeService = promoCodeService;
         }
 
         /// <summary>
@@ -288,50 +285,25 @@ using Microsoft.AspNetCore.Mvc;
         public async Task<IActionResult> ReceivePromoCodeFromPartnerWithPreferenceAsync(Guid id,
             ReceivingPromoCodeRequest request)
         {
-            var partner = await _partnersRepository.GetByIdAsync(id);
-
-            if (partner == null)
+            try
             {
-                return BadRequest("Партнер не найден");
+                // Используем сервис для обработки бизнес-логики
+                var promoCode = await _promoCodeService.ReceivePromoCodeFromPartnerWithPreferenceAsync(
+                    id,
+                    request.PromoCode,
+                    request.PreferenceId,
+                    DateTime.Now,
+                    DateTime.Now.AddDays(30),
+                    request.ServiceInfo,
+                    request.PartnerManagerId);
+
+                return CreatedAtAction(nameof(GetPartnerPromoCodeAsync),
+                    new {id = id, promoCodeId = promoCode.Id}, null);
             }
-
-            var activeLimit = partner.PartnerLimits.FirstOrDefault(x
-                => !x.CancelDate.HasValue && x.EndDate > DateTime.Now);
-
-            if (activeLimit == null)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest("Нет доступного лимита на предоставление промокодов");
+                return BadRequest(ex.Message);
             }
-
-            if (partner.NumberIssuedPromoCodes + 1 > activeLimit.Limit)
-            {
-                return BadRequest("Лимит на выдачу промокодов превышен");
-            }
-
-            if (partner.PromoCodes.Any(x => x.Code == request.PromoCode))
-            {
-                return BadRequest("Данный промокод уже был выдан ранее");
-            }
-
-            //Получаем предпочтение по ID через шлюз
-            var preference = await _preferencesGateway.GetPreferenceByIdAsync(request.PreferenceId);
-
-            if (preference == null)
-            {
-                return BadRequest("Предпочтение не найдено");
-            }
-
-            PromoCode promoCode = PromoCodeMapper.MapFromModel(request, preference, partner);
-            partner.PromoCodes.Add(promoCode);
-            partner.NumberIssuedPromoCodes++;
-
-            await _partnersRepository.UpdateAsync(partner);
-
-            // Отправка единого события в RabbitMQ для обработки микросервисами GivingToCustomer и Administration
-            await _promoCodeReceivedGateway.PublishPromoCodeReceivedEvent(promoCode);
-
-            return CreatedAtAction(nameof(GetPartnerPromoCodeAsync),
-                new {id = partner.Id, promoCodeId = promoCode.Id}, null);
         }
     }
 }
