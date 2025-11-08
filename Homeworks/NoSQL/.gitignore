@@ -1,5 +1,7 @@
 ## Visual Studio / Visual Studio Code
+# Игнорировать все служебные папки Visual Studio (включая CopilotIndices)
 .vs/
+**/.vs/
 .vscode/
 *.suo
 *.user
@@ -7,7 +9,7 @@
 *.sln.docstates
 *.userprefs
 
-## Visual Studio Copilot Indices
+## Visual Studio Copilot Indices (явное правило для надежности)
 **/.vs/**/CopilotIndices/
 
 ## Build results
