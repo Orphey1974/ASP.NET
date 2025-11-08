@@ -8,8 +8,19 @@ using Pcf.Preferences.DataAccess.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Явно указываем порт для предотвращения конфликтов
+builder.WebHost.UseUrls("http://localhost:8094");
+
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Настройка Swagger/OpenAPI
+builder.Services.AddOpenApiDocument(options =>
+{
+    options.Title = "PromoCode Factory Preferences API";
+    options.Version = "1.0";
+    options.Description = "API для управления справочником предпочтений клиентов";
+});
 
 // Database
 builder.Services.AddDbContext<DataContext>(options =>
@@ -46,6 +57,17 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 // Отключаем HTTPS редирект для локальной разработки
 // app.UseHttpsRedirection();
+
+// Настройка Swagger UI
+app.UseOpenApi();
+app.UseSwaggerUi(options =>
+{
+    options.DocExpansion = "list";
+    options.Path = "/swagger";
+});
+
+// Корневой маршрут - перенаправление на Swagger
+app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
 app.UseAuthorization();
 

@@ -17,4 +17,15 @@
     <ProjectReference Include="..\Pcf.Preferences.DataAccess\Pcf.Preferences.DataAccess.csproj" />
   </ItemGroup>
 
+  <!-- Запуск скрипта остановки сервисов перед сборкой -->
+  <Target Name="StopServicesBeforeBuild" BeforeTargets="PreBuildEvent">
+    <PropertyGroup>
+      <StopScriptPath>$(MSBuildProjectDirectory)\..\..\..\..\stop-preferences-services.ps1</StopScriptPath>
+    </PropertyGroup>
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(StopScriptPath)&quot;"
+          ContinueOnError="true"
+          IgnoreExitCode="true"
+          Condition="Exists('$(StopScriptPath)')" />
+  </Target>
+
 </Project>
