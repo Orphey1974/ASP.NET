@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,7 @@ using Pcf.Administration.Core.Abstractions.Repositories;
 using Pcf.Administration.DataAccess.Data;
 using Pcf.Administration.DataAccess.Repositories;
 using Pcf.Administration.Core.Domain.Administration;
+using Pcf.Administration.WebHost.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace Pcf.Administration.WebHost
@@ -49,6 +51,28 @@ namespace Pcf.Administration.WebHost
                 var mongoContext = provider.GetRequiredService<MongoDbContext>();
                 return new MongoRoleRepository(mongoContext.Roles);
             });
+
+            // Настройка RabbitMQ
+            var rabbitMqSettings = Configuration.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
+            if (rabbitMqSettings != null)
+            {
+                services.AddMassTransit(x =>
+                {
+                    x.AddConsumer<Pcf.Administration.DataAccess.Consumers.PromoCodeReceivedFromPartnerConsumer>();
+
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        var uri = $"rabbitmq://{rabbitMqSettings.Host}:{rabbitMqSettings.Port}{rabbitMqSettings.VirtualHost}";
+                        cfg.Host(uri, h =>
+                        {
+                            h.Username(rabbitMqSettings.Username);
+                            h.Password(rabbitMqSettings.Password);
+                        });
+
+                        cfg.ConfigureEndpoints(context);
+                    });
+                });
+            }
 
             services.AddOpenApiDocument(options =>
             {

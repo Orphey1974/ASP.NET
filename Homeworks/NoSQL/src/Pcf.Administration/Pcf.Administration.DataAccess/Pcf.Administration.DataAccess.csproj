@@ -5,11 +5,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="MassTransit.Abstractions" Version="8.3.0" />
       <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
       <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Pcf.ReceivingFromPartner\Pcf.ReceivingFromPartner.Core\Pcf.ReceivingFromPartner.Core.csproj" />
       <ProjectReference Include="..\Pcf.Administration.Core\Pcf.Administration.Core.csproj" />
     </ItemGroup>
 

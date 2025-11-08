@@ -1,0 +1,9 @@
+<Project>
+  <Target Name="KillProcessesLockingBinFiles" BeforeTargets="BeforeBuild">
+    <Message Text="Проверка процессов, блокирующих файлы в папке bin..." Importance="normal" />
+    <Exec
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)kill-bin-locked-processes.ps1&quot; -ProjectDirectory &quot;$(MSBuildProjectDirectory)&quot;"
+      ContinueOnError="true"
+      IgnoreExitCode="true" />
+  </Target>
+</Project>

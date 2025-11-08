@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Pcf.ReceivingFromPartner.Core\Pcf.ReceivingFromPartner.Core.csproj" />
+      <ProjectReference Include="..\Pcf.ReceivingFromPartner.Integration\Pcf.ReceivingFromPartner.Integration.csproj" />
     </ItemGroup>
 
 </Project>

@@ -18,6 +18,10 @@ namespace Pcf.ReceivingFromPartner.WebHost
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseUrls("http://localhost:8092");
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }

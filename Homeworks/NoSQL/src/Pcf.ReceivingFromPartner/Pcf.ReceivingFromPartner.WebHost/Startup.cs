@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Configuration;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,7 @@ using Pcf.ReceivingFromPartner.DataAccess;
 using Pcf.ReceivingFromPartner.DataAccess.Data;
 using Pcf.ReceivingFromPartner.DataAccess.Repositories;
 using Pcf.ReceivingFromPartner.Integration;
+using Pcf.ReceivingFromPartner.WebHost.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace Pcf.ReceivingFromPartner.WebHost
@@ -39,18 +41,37 @@ namespace Pcf.ReceivingFromPartner.WebHost
             services.AddScoped<INotificationGateway, NotificationGateway>();
             services.AddScoped<IDbInitializer, EfDbInitializer>();
 
-            services.AddHttpClient<IGivingPromoCodeToCustomerGateway,GivingPromoCodeToCustomerGateway>(c =>
-            {
-                c.BaseAddress = new Uri(Configuration["IntegrationSettings:GivingToCustomerApiUrl"]);
-            });
+            // Gateway для отправки единого события получения промокода от партнера
+            services.AddScoped<Pcf.ReceivingFromPartner.Integration.PromoCodeReceivedFromPartnerGateway>();
 
-            services.AddHttpClient<IAdministrationGateway,AdministrationGateway>(c =>
-            {
-                c.BaseAddress = new Uri(Configuration["IntegrationSettings:AdministrationApiUrl"]);
-            });
+            // Сервис для работы с промокодами
+            services.AddScoped<Pcf.ReceivingFromPartner.Core.Abstractions.Services.IPromoCodeService,
+                Pcf.ReceivingFromPartner.DataAccess.Services.PromoCodeService>();
 
             // HTTP клиент для микросервиса предпочтений
             services.AddHttpClient<IPreferencesGateway, PreferencesGateway>();
+
+            // Настройка RabbitMQ
+            var rabbitMqSettings = Configuration.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
+            if (rabbitMqSettings != null)
+            {
+                services.AddMassTransit(x =>
+                {
+                    x.AddConsumer<Pcf.ReceivingFromPartner.Integration.Consumers.PartnerNotificationConsumer>();
+
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        var uri = $"rabbitmq://{rabbitMqSettings.Host}:{rabbitMqSettings.Port}{rabbitMqSettings.VirtualHost}";
+                        cfg.Host(uri, h =>
+                        {
+                            h.Username(rabbitMqSettings.Username);
+                            h.Password(rabbitMqSettings.Password);
+                        });
+
+                        cfg.ConfigureEndpoints(context);
+                    });
+                });
+            }
 
             services.AddDbContext<DataContext>(x =>
             {

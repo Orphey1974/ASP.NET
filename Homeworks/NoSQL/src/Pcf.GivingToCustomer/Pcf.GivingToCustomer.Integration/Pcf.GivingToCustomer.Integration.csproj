@@ -5,10 +5,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Pcf.ReceivingFromPartner\Pcf.ReceivingFromPartner.Core\Pcf.ReceivingFromPartner.Core.csproj" />
       <ProjectReference Include="..\Pcf.GivingToCustomer.Core\Pcf.GivingToCustomer.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="MassTransit.Abstractions" Version="8.3.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     </ItemGroup>

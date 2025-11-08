@@ -23,8 +23,14 @@ services:
     environment:
       - "MongoDbSettings:ConnectionString=mongodb://admin:password@promocode-factory-administration-mongodb:27017"
       - "MongoDbSettings:DatabaseName=promocode_factory_administration"
+      - "RabbitMqSettings:Host=promocode-factory-rabbitmq"
+      - "RabbitMqSettings:Port=5672"
+      - "RabbitMqSettings:Username=admin"
+      - "RabbitMqSettings:Password=password"
+      - "RabbitMqSettings:VirtualHost=/"
     depends_on:
       - promocode-factory-administration-mongodb
+      - promocode-factory-rabbitmq
 
   #ReceivingFromPartner Db
   promocode-factory-receiving-from-partner-db:
@@ -47,9 +53,15 @@ services:
       - "IntegrationSettings:GivingToCustomerApiUrl=http://promocode-factory-giving-to-customer-api"
       - "IntegrationSettings:AdministrationApiUrl=http://promocode-factory-administration-api"
       - "IntegrationSettings:PreferencesApiUrl=http://promocode-factory-preferences-api:8080"
+      - "RabbitMqSettings:Host=promocode-factory-rabbitmq"
+      - "RabbitMqSettings:Port=5672"
+      - "RabbitMqSettings:Username=admin"
+      - "RabbitMqSettings:Password=password"
+      - "RabbitMqSettings:VirtualHost=/"
     depends_on:
       - promocode-factory-receiving-from-partner-db
       - promocode-factory-preferences-api
+      - promocode-factory-rabbitmq
 
   #GivingToCustomer Db
   promocode-factory-giving-to-customer-db:
@@ -70,9 +82,15 @@ services:
     environment:
       - "ConnectionStrings:PromocodeFactoryGivingToCustomerDb=Host=promocode-factory-giving-to-customer-db;Database=promocode_factory_giving_to_customer_db;Username=postgres;Password=docker"
       - "IntegrationSettings:PreferencesApiUrl=http://promocode-factory-preferences-api"
+      - "RabbitMqSettings:Host=promocode-factory-rabbitmq"
+      - "RabbitMqSettings:Port=5672"
+      - "RabbitMqSettings:Username=admin"
+      - "RabbitMqSettings:Password=password"
+      - "RabbitMqSettings:VirtualHost=/"
     depends_on:
       - promocode-factory-giving-to-customer-db
       - promocode-factory-preferences-api
+      - promocode-factory-rabbitmq
 
   #Redis Cache
   promocode-factory-redis:
@@ -101,7 +119,22 @@ services:
     depends_on:
       - promocode-factory-redis
 
+  #RabbitMQ Message Broker
+  promocode-factory-rabbitmq:
+    image: "rabbitmq:3-management-alpine"
+    container_name: 'promocode-factory-rabbitmq'
+    restart: always
+    ports:
+      - "5672:5672"   # AMQP порт
+      - "15672:15672" # Web UI порт
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   mongodb_data:
   redis_data:
   preferences_data:
+  rabbitmq_data:
