@@ -1,4 +1,5 @@
 ﻿# Script to kill processes locking files in bin folder
+Clear-Host
 param(
     [string]$ProjectDirectory = $PSScriptRoot
 )

@@ -1,6 +1,7 @@
 # Скрипт для остановки всех сервисов решения Pcf.Preferences
 # Использование: .\stop-preferences-services.ps1
 
+Clear-Host
 Write-Host "🛑 Остановка сервисов решения Pcf.Preferences..." -ForegroundColor Yellow
 Write-Host ""
 

@@ -1,6 +1,7 @@
 ﻿# Script to start databases via Docker Compose
 # Starts only databases and infrastructure services needed for microservices
 
+Clear-Host
 Write-Host "Starting databases for microservices..." -ForegroundColor Cyan
 Write-Host ""
 

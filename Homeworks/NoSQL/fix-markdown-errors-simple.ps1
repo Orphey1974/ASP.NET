@@ -2,6 +2,7 @@
 # Author: AI Assistant
 # Description: Automatically fixes common markdown formatting issues
 
+Clear-Host
 param(
     [string]$Path = ".",
     [switch]$Recursive = $false,
