@@ -22,7 +22,8 @@ namespace Pcf.GivingToCustomer.WebHost
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     // Используем HTTPS для поддержки TLS (рекомендуется для gRPC)
-                    webBuilder.UseUrls("https://localhost:8093", "http://localhost:8094");
+                    // Порт 8094 занят сервисом Pcf.Preferences, используем 8095 для HTTP
+                    webBuilder.UseUrls("https://localhost:8093", "http://localhost:8095");
                     webBuilder.UseKestrel(options =>
                     {
                         // Настройка для поддержки HTTP/2 с TLS для gRPC
@@ -41,7 +42,8 @@ namespace Pcf.GivingToCustomer.WebHost
                         });
 
                         // Настройка HTTP endpoint (для обратной совместимости)
-                        options.ListenLocalhost(8094, listenOptions =>
+                        // Порт 8095 вместо 8094, чтобы не конфликтовать с Pcf.Preferences
+                        options.ListenLocalhost(8095, listenOptions =>
                         {
                             listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
                         });

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Moq;
 using Pcf.GivingToCustomer.Core.Abstractions.Gateways;
 using Pcf.GivingToCustomer.Core.Domain;
 using Pcf.GivingToCustomer.DataAccess.Repositories;
 using Pcf.GivingToCustomer.WebHost.Controllers;
+using Pcf.GivingToCustomer.WebHost.Hubs;
 using Pcf.GivingToCustomer.WebHost.Models;
 using Xunit;
 
@@ -19,15 +21,24 @@ namespace Pcf.GivingToCustomer.IntegrationTests.Components.WebHost.Controllers
         private readonly CustomersController _customersController;
         private readonly EfRepository<Customer> _customerRepository;
         private readonly Mock<IPreferencesGateway> _preferencesGatewayMock;
+        private readonly Mock<IHubContext<CustomersHub>> _hubContextMock;
 
         public CustomersControllerTests(EfDatabaseFixture efDatabaseFixture)
         {
             _customerRepository = new EfRepository<Customer>(efDatabaseFixture.DbContext);
             _preferencesGatewayMock = new Mock<IPreferencesGateway>();
+            _hubContextMock = new Mock<IHubContext<CustomersHub>>();
+
+            // Настраиваем мок для IHubContext
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            mockClients.Setup(x => x.All).Returns(mockClientProxy.Object);
+            _hubContextMock.Setup(x => x.Clients).Returns(mockClients.Object);
 
             _customersController = new CustomersController(
                 _customerRepository,
-                _preferencesGatewayMock.Object);
+                _preferencesGatewayMock.Object,
+                _hubContextMock.Object);
         }
 
         [Fact]

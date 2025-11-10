@@ -41,6 +41,26 @@ namespace Pcf.GivingToCustomer.WebHost
             services.AddScoped<INotificationGateway, NotificationGateway>();
             services.AddScoped<IDbInitializer, EfDbInitializer>();
 
+            // Настройка CORS для SignalR
+            services.AddCors(options =>
+            {
+                options.AddPolicy("SignalRCorsPolicy", builder =>
+                {
+                    builder
+                        .SetIsOriginAllowed(_ => true) // Разрешаем любые источники для SignalR
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials() // Важно для SignalR
+                        .WithExposedHeaders("Content-Type", "Authorization");
+                });
+            });
+
+            // Настройка SignalR с поддержкой CORS
+            services.AddSignalR(options =>
+            {
+                options.EnableDetailedErrors = true;
+            });
+
             // Настройка gRPC
             services.AddGrpc(options =>
             {
@@ -156,13 +176,22 @@ namespace Pcf.GivingToCustomer.WebHost
             });
 
             // Включаем HTTPS редирект для перенаправления HTTP на HTTPS
-            app.UseHttpsRedirection();
+            // Отключаем для Development, чтобы не мешать SignalR подключениям
+            if (!env.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
+            // Включаем CORS (должен быть до UseRouting и UseEndpoints)
+            app.UseCors("SignalRCorsPolicy");
 
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                // Настройка SignalR Hub
+                endpoints.MapHub<Pcf.GivingToCustomer.WebHost.Hubs.CustomersHub>("/hubs/customers");
                 // Настройка gRPC endpoints
                 endpoints.MapGrpcService<Pcf.GivingToCustomer.WebHost.Services.CustomersGrpcService>();
                 // Включаем Server Reflection для работы с grpcurl (только для Development)

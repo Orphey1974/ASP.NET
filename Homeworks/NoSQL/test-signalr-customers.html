@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест SignalR - Customers</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест SignalR - Customers Hub</h1>
+
+    <div>
+        <label>URL сервера:</label>
+        <input type="text" id="serverUrl" value="http://localhost:8095" />
+        <button onclick="connect()">Подключиться</button>
+        <button onclick="disconnect()" id="disconnectBtn" disabled>Отключиться</button>
+    </div>
+
+    <div id="status" class="status disconnected">Отключено</div>
+
+    <h3>Лог событий:</h3>
+    <div id="log" class="log"></div>
+
+    <script>
+        let connection = null;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${time}] ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            const statusDiv = document.getElementById('status');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+
+            if (connected) {
+                statusDiv.textContent = 'Подключено';
+                statusDiv.className = 'status connected';
+                disconnectBtn.disabled = false;
+            } else {
+                statusDiv.textContent = 'Отключено';
+                statusDiv.className = 'status disconnected';
+                disconnectBtn.disabled = true;
+            }
+        }
+
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const hubUrl = `${serverUrl}/hubs/customers`;
+
+            log(`Попытка подключения к ${hubUrl}...`);
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl(hubUrl, {
+                    skipNegotiation: false,
+                    transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
+                })
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("CustomerCreated", (customer) => {
+                log(`✅ Создан новый клиент: ${JSON.stringify(customer, null, 2)}`);
+            });
+
+            connection.on("CustomerUpdated", (customer) => {
+                log(`🔄 Обновлен клиент: ${JSON.stringify(customer, null, 2)}`);
+            });
+
+            connection.on("CustomerDeleted", (customerId) => {
+                log(`❌ Удален клиент: ${customerId}`);
+            });
+
+            connection.on("CustomersListUpdated", (customers) => {
+                log(`📋 Обновлен список клиентов: ${JSON.stringify(customers, null, 2)}`);
+            });
+
+            connection.onreconnecting(() => {
+                log('⏳ Переподключение...');
+                updateStatus(false);
+            });
+
+            connection.onreconnected(() => {
+                log('✅ Переподключено');
+                updateStatus(true);
+            });
+
+            connection.onclose(() => {
+                log('❌ Соединение закрыто');
+                updateStatus(false);
+            });
+
+            connection.start()
+                .then(() => {
+                    log('✅ Успешно подключено к SignalR Hub');
+                    updateStatus(true);
+                })
+                .catch((err) => {
+                    log(`❌ Ошибка подключения: ${err.toString()}`);
+                    updateStatus(false);
+                    console.error('Ошибка SignalR:', err);
+                });
+        }
+
+        function disconnect() {
+            if (connection) {
+                connection.stop()
+                    .then(() => {
+                        log('Отключено от SignalR Hub');
+                        updateStatus(false);
+                    })
+                    .catch((err) => {
+                        log(`Ошибка при отключении: ${err.toString()}`);
+                    });
+            }
+        }
+
+        // Автоматическое подключение при загрузке страницы
+        window.onload = function() {
+            log('Страница загружена. Нажмите "Подключиться" для начала работы.');
+        };
+    </script>
+</body>
+</html>
+

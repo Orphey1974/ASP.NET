@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Pcf.GivingToCustomer.Core.Abstractions.Repositories;
 using Pcf.GivingToCustomer.Core.Abstractions.Gateways;
 using Pcf.GivingToCustomer.Core.Domain;
 using Pcf.GivingToCustomer.WebHost.Mappers;
 using Pcf.GivingToCustomer.WebHost.Models;
+using Pcf.GivingToCustomer.WebHost.Hubs;
 
 namespace Pcf.GivingToCustomer.WebHost.Controllers
 {
@@ -21,12 +23,16 @@ namespace Pcf.GivingToCustomer.WebHost.Controllers
     {
         private readonly IRepository<Customer> _customerRepository;
         private readonly IPreferencesGateway _preferencesGateway;
+        private readonly IHubContext<CustomersHub> _hubContext;
 
-        public CustomersController(IRepository<Customer> customerRepository,
-            IPreferencesGateway preferencesGateway)
+        public CustomersController(
+            IRepository<Customer> customerRepository,
+            IPreferencesGateway preferencesGateway,
+            IHubContext<CustomersHub> hubContext)
         {
             _customerRepository = customerRepository;
             _preferencesGateway = preferencesGateway;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -88,6 +94,12 @@ namespace Pcf.GivingToCustomer.WebHost.Controllers
 
             await _customerRepository.AddAsync(customer);
 
+            // Получаем полную информацию о клиенте для отправки через SignalR
+            var customerResponse = new CustomerResponse(customer, preferences);
+
+            // Отправляем уведомление через SignalR
+            await _hubContext.Clients.All.SendAsync("CustomerCreated", customerResponse);
+
             return CreatedAtAction(nameof(GetCustomerAsync), new {id = customer.Id}, customer.Id);
         }
 
@@ -110,6 +122,12 @@ namespace Pcf.GivingToCustomer.WebHost.Controllers
 
             await _customerRepository.UpdateAsync(customer);
 
+            // Получаем обновленную информацию о клиенте для отправки через SignalR
+            var customerResponse = new CustomerResponse(customer, preferences);
+
+            // Отправляем уведомление через SignalR
+            await _hubContext.Clients.All.SendAsync("CustomerUpdated", customerResponse);
+
             return NoContent();
         }
 
@@ -126,6 +144,9 @@ namespace Pcf.GivingToCustomer.WebHost.Controllers
                 return NotFound();
 
             await _customerRepository.DeleteAsync(customer);
+
+            // Отправляем уведомление через SignalR
+            await _hubContext.Clients.All.SendAsync("CustomerDeleted", id);
 
             return NoContent();
         }
