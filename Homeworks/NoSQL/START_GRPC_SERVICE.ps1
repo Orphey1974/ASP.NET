@@ -1,9 +1,16 @@
-# Скрипт для запуска gRPC сервиса GivingToCustomer
+﻿# Скрипт для запуска gRPC сервиса GivingToCustomer
 # Использование: .\START_GRPC_SERVICE.ps1
 
 Clear-Host
 Write-Host "=== Запуск gRPC сервиса GivingToCustomer ===" -ForegroundColor Green
 Write-Host ""
+
+# Сохраняем исходную директорию
+$originalLocation = Get-Location
+
+# Определяем корень решения (где находится скрипт)
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptRoot
 
 $projectPath = "src/Pcf.GivingToCustomer/Pcf.GivingToCustomer.WebHost"
 
@@ -41,22 +48,23 @@ try {
 }
 
 Write-Host ""
-Write-Host "2. Запуск сервиса на порту 8093..." -ForegroundColor Yellow
-Write-Host "   Сервис будет доступен по адресу: http://localhost:8093" -ForegroundColor Cyan
-Write-Host "   Swagger UI: http://localhost:8093/swagger" -ForegroundColor Cyan
-Write-Host "   gRPC endpoint: http://localhost:8093" -ForegroundColor Cyan
+Write-Host "2. Запуск сервиса на портах 8093 (HTTPS) и 8094 (HTTP)..." -ForegroundColor Yellow
+Write-Host "   gRPC endpoint (HTTPS/HTTP/2): https://localhost:8093" -ForegroundColor Cyan
+Write-Host "   HTTP endpoint (для обратной совместимости): http://localhost:8094" -ForegroundColor Cyan
+Write-Host "   Swagger UI (REST API): https://localhost:8093/swagger" -ForegroundColor Cyan
+Write-Host "   Примечание: gRPC использует HTTP/2 с TLS (h2) - рекомендуется для grpcurl" -ForegroundColor Gray
 Write-Host ""
 Write-Host "   Для остановки нажмите Ctrl+C" -ForegroundColor Gray
 Write-Host ""
 
 # Запуск сервиса
 try {
-    Set-Location $projectPath
+    $fullProjectPath = Join-Path $scriptRoot $projectPath
+    Set-Location $fullProjectPath
     dotnet run
 } catch {
     Write-Host "Ошибка при запуске: $_" -ForegroundColor Red
     exit 1
 } finally {
-    Set-Location $PSScriptRoot
+    Set-Location $originalLocation
 }
-

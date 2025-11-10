@@ -14,8 +14,39 @@ namespace GrpcTestClient
         {
             Console.WriteLine("=== Тестирование gRPC сервиса Customers ===\n");
 
-            // Создаем канал для подключения к gRPC сервису
-            using var channel = GrpcChannel.ForAddress("http://localhost:8093");
+            // Проверка доступности сервиса
+            Console.WriteLine("Проверка доступности сервиса на https://127.0.0.1:8093...");
+            try
+            {
+                // Настраиваем HttpClient для игнорирования ошибок сертификата в development
+                var handler = new System.Net.Http.HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback =
+                    System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
+                using var httpClient = new System.Net.Http.HttpClient(handler);
+                httpClient.Timeout = TimeSpan.FromSeconds(3);
+                var response = await httpClient.GetAsync("https://127.0.0.1:8093/swagger/index.html");
+                Console.WriteLine($"   ✓ Сервис доступен (HTTP статус: {response.StatusCode})\n");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"   ✗ ОШИБКА: Сервис не запущен или недоступен!");
+                Console.WriteLine($"   Сообщение: {ex.Message}\n");
+                Console.WriteLine("   Запустите сервис командой:");
+                Console.WriteLine("     .\\START_GRPC_SERVICE.ps1\n");
+                return;
+            }
+
+            // Создаем канал для подключения к gRPC сервису через HTTPS
+            // Настраиваем для игнорирования ошибок сертификата в development
+            var httpHandler = new System.Net.Http.HttpClientHandler();
+            httpHandler.ServerCertificateCustomValidationCallback =
+                System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
+            using var channel = GrpcChannel.ForAddress("https://127.0.0.1:8093", new GrpcChannelOptions
+            {
+                HttpHandler = httpHandler
+            });
             var client = new Pcf.GivingToCustomer.WebHost.Protos.CustomersService.CustomersServiceClient(channel);
 
             try

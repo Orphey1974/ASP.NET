@@ -1,8 +1,9 @@
-# Скрипт для тестирования gRPC сервиса через grpcurl
+﻿# Скрипт для тестирования gRPC сервиса через grpcurl
 # Использование: .\test-grpc-with-grpcurl.ps1
 
 Clear-Host
-$grpcUrl = "localhost:8093"
+# Используем HTTPS с явным IPv4 адресом для поддержки TLS
+$grpcUrl = "https://127.0.0.1:8093"
 
 Write-Host "=== Тестирование gRPC сервиса через grpcurl ===" -ForegroundColor Green
 Write-Host ""
@@ -21,7 +22,8 @@ Write-Host ""
 # Проверка доступности сервиса
 Write-Host "1. Проверка доступности сервиса на $grpcUrl..." -ForegroundColor Yellow
 try {
-    $services = grpcurl -plaintext $grpcUrl list 2>&1
+    # Используем HTTPS (TLS) вместо -plaintext
+    $services = grpcurl $grpcUrl list 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "   ✓ Сервис доступен" -ForegroundColor Green
         Write-Host "   Доступные сервисы:" -ForegroundColor Cyan
@@ -42,7 +44,8 @@ Write-Host ""
 # Тест 1: Получить список клиентов
 Write-Host "2. Тест: GetCustomers (получить список клиентов)..." -ForegroundColor Yellow
 try {
-    $response = grpcurl -plaintext -d '{}' $grpcUrl customers.CustomersService/GetCustomers 2>&1
+    # Используем HTTPS (TLS) вместо -plaintext
+    $response = grpcurl -d '{}' $grpcUrl customers.CustomersService/GetCustomers 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "   ✓ Успешно" -ForegroundColor Green
         Write-Host "   Ответ:" -ForegroundColor Cyan
@@ -67,7 +70,8 @@ $createRequest = @{
 } | ConvertTo-Json -Compress
 
 try {
-    $response = grpcurl -plaintext -d $createRequest $grpcUrl customers.CustomersService/CreateCustomer 2>&1
+    # Используем HTTPS (TLS) вместо -plaintext
+    $response = grpcurl -d $createRequest $grpcUrl customers.CustomersService/CreateCustomer 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "   ✓ Клиент создан" -ForegroundColor Green
         Write-Host "   Ответ:" -ForegroundColor Cyan
@@ -86,7 +90,8 @@ try {
             } | ConvertTo-Json -Compress
 
             try {
-                $getResponse = grpcurl -plaintext -d $getRequest $grpcUrl customers.CustomersService/GetCustomer 2>&1
+                # Используем HTTPS (TLS) вместо -plaintext
+                $getResponse = grpcurl -d $getRequest $grpcUrl customers.CustomersService/GetCustomer 2>&1
                 if ($LASTEXITCODE -eq 0) {
                     Write-Host "   ✓ Клиент найден" -ForegroundColor Green
                     Write-Host "   Ответ:" -ForegroundColor Cyan
@@ -110,7 +115,7 @@ Write-Host ""
 Write-Host "=== Тестирование завершено ===" -ForegroundColor Green
 Write-Host ""
 Write-Host "Полезные команды:" -ForegroundColor Cyan
-Write-Host "  grpcurl -plaintext localhost:8093 list" -ForegroundColor Gray
-Write-Host "  grpcurl -plaintext -d '{}' localhost:8093 customers.CustomersService/GetCustomers" -ForegroundColor Gray
+Write-Host '  grpcurl https://127.0.0.1:8093 list' -ForegroundColor Gray
+Write-Host '  grpcurl -d ''{}'' https://127.0.0.1:8093 customers.CustomersService/GetCustomers' -ForegroundColor Gray
 
 

@@ -11,11 +11,35 @@ if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue) -and -not (G
     exit 1
 }
 
+# Check if Docker daemon is running
+Write-Host "Checking Docker daemon availability..." -ForegroundColor Cyan
+$dockerCheck = docker ps 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "Error: Docker daemon is not running!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Solution:" -ForegroundColor Yellow
+    Write-Host "  1. Start Docker Desktop application" -ForegroundColor White
+    Write-Host "  2. Wait until Docker Desktop is fully started (whale icon in system tray)" -ForegroundColor White
+    Write-Host "  3. Run this script again" -ForegroundColor White
+    Write-Host ""
+    Write-Host "To start Docker Desktop:" -ForegroundColor Cyan
+    Write-Host "  - Find 'Docker Desktop' in Start menu and launch it" -ForegroundColor White
+    Write-Host "  - Or run: Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'" -ForegroundColor White
+    Write-Host ""
+    exit 1
+}
+Write-Host "  Docker daemon is running" -ForegroundColor Green
+Write-Host ""
+
 # Use docker compose (new version) or docker-compose (old version)
-$dockerComposeCmd = if (Get-Command docker -ErrorAction SilentlyContinue) {
-    docker compose
-} else {
-    docker-compose
+$useDockerCompose = $false
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+    # Проверяем, поддерживает ли docker команду compose
+    $composeCheck = docker compose version 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $useDockerCompose = $true
+    }
 }
 
 Write-Host "Starting the following services:" -ForegroundColor Yellow
@@ -27,12 +51,21 @@ Write-Host "  - RabbitMQ for message exchange" -ForegroundColor White
 Write-Host ""
 
 # Start databases and infrastructure services
-& $dockerComposeCmd up -d `
-    promocode-factory-administration-mongodb `
-    promocode-factory-receiving-from-partner-db `
-    promocode-factory-giving-to-customer-db `
-    promocode-factory-redis `
-    promocode-factory-rabbitmq
+if ($useDockerCompose) {
+    docker compose up -d `
+        promocode-factory-administration-mongodb `
+        promocode-factory-receiving-from-partner-db `
+        promocode-factory-giving-to-customer-db `
+        promocode-factory-redis `
+        promocode-factory-rabbitmq
+} else {
+    docker-compose up -d `
+        promocode-factory-administration-mongodb `
+        promocode-factory-receiving-from-partner-db `
+        promocode-factory-giving-to-customer-db `
+        promocode-factory-redis `
+        promocode-factory-rabbitmq
+}
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""

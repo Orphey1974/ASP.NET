@@ -33,24 +33,20 @@ namespace Pcf.GivingToCustomer.WebHost.Middleware
         {
             try
             {
-                // Определяем корень решения (на 5 уровней выше от bin/Debug/net8.0)
-                // bin/Debug/net8.0 -> WebHost -> Pcf.GivingToCustomer -> src -> корень решения
-                var currentDir = AppContext.BaseDirectory;
-                var solutionRoot = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..", "..", "..", "..", ".."));
-
-                // Альтернативный способ: ищем папку src или .sln файл
-                var directory = new DirectoryInfo(currentDir);
+                // Определяем корень решения: ищем папку src с файлом Pcf.sln
+                var directory = new DirectoryInfo(AppContext.BaseDirectory);
                 while (directory != null && !File.Exists(Path.Combine(directory.FullName, "src", "Pcf.sln")))
                 {
                     directory = directory.Parent;
                 }
 
-                if (directory != null)
+                if (directory == null)
                 {
-                    solutionRoot = directory.FullName;
+                    _logger.LogWarning("Не удалось найти корень решения, используется текущая директория");
+                    directory = new DirectoryInfo(AppContext.BaseDirectory);
                 }
 
-                var errorsDirectory = Path.Combine(solutionRoot, "errors");
+                var errorsDirectory = Path.Combine(directory.FullName, "errors");
 
                 // Создаем папку errors, если её нет
                 if (!Directory.Exists(errorsDirectory))

@@ -21,16 +21,28 @@ namespace Pcf.GivingToCustomer.WebHost
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("http://localhost:8093");
+                    // Используем HTTPS для поддержки TLS (рекомендуется для gRPC)
+                    webBuilder.UseUrls("https://localhost:8093", "http://localhost:8094");
                     webBuilder.UseKestrel(options =>
                     {
-                        // Настройка для поддержки HTTP/2 через HTTP (без TLS) для gRPC
-                        // Примечание: HTTP/2 без TLS (h2c) поддерживается ограниченно
-                        // Но gRPC требует HTTP/2 для корректной работы
+                        // Настройка для поддержки HTTP/2 с TLS для gRPC
+                        // HTTP/2 с TLS (h2) работает лучше, чем без TLS (h2c)
                         options.ConfigureEndpointDefaults(listenOptions =>
                         {
-                            // Используем Http1AndHttp2 - предупреждение можно игнорировать
-                            // gRPC будет пытаться использовать HTTP/2, при отсутствии TLS будет HTTP/1.1
+                            // Используем Http1AndHttp2 - HTTP/2 будет использоваться с TLS
+                            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                        });
+
+                        // Настройка HTTPS endpoint
+                        options.ListenLocalhost(8093, listenOptions =>
+                        {
+                            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                            listenOptions.UseHttps(); // Использует development сертификат
+                        });
+
+                        // Настройка HTTP endpoint (для обратной совместимости)
+                        options.ListenLocalhost(8094, listenOptions =>
+                        {
                             listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
                         });
                     });

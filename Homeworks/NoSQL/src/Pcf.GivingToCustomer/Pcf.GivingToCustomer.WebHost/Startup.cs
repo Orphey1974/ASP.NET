@@ -48,6 +48,9 @@ namespace Pcf.GivingToCustomer.WebHost
                 options.EnableDetailedErrors = true;
             });
 
+            // Включаем Server Reflection для работы с grpcurl и другими инструментами
+            services.AddGrpcReflection();
+
             // Настройка MassTransit (всегда регистрируем для IPublishEndpoint)
             // Используем RabbitMQ если настроен, иначе in-memory bus
             var rabbitMqSettings = Configuration.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
@@ -152,8 +155,8 @@ namespace Pcf.GivingToCustomer.WebHost
                 x.DocExpansion = "list";
             });
 
-            // Отключаем HTTPS редирект для локальной разработки (gRPC требует HTTP/2 через HTTP)
-            // app.UseHttpsRedirection();
+            // Включаем HTTPS редирект для перенаправления HTTP на HTTPS
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 
@@ -162,6 +165,11 @@ namespace Pcf.GivingToCustomer.WebHost
                 endpoints.MapControllers();
                 // Настройка gRPC endpoints
                 endpoints.MapGrpcService<Pcf.GivingToCustomer.WebHost.Services.CustomersGrpcService>();
+                // Включаем Server Reflection для работы с grpcurl (только для Development)
+                if (env.IsDevelopment())
+                {
+                    endpoints.MapGrpcReflectionService();
+                }
             });
 
             // Инициализация базы данных
