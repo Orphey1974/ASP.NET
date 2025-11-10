@@ -41,15 +41,29 @@ namespace Pcf.GivingToCustomer.WebHost
             services.AddScoped<INotificationGateway, NotificationGateway>();
             services.AddScoped<IDbInitializer, EfDbInitializer>();
 
-            // Настройка RabbitMQ
-            var rabbitMqSettings = Configuration.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
-            if (rabbitMqSettings != null)
+            // Настройка gRPC
+            services.AddGrpc(options =>
             {
-                services.AddMassTransit(x =>
-                {
-                    x.AddConsumer<Pcf.GivingToCustomer.Integration.Consumers.PartnerNotificationConsumer>();
-                    x.AddConsumer<Pcf.GivingToCustomer.Integration.Consumers.PromoCodeReceivedFromPartnerConsumer>();
+                // Разрешаем небезопасные соединения для локальной разработки
+                options.EnableDetailedErrors = true;
+            });
 
+            // Включаем Server Reflection для работы с grpcurl и другими инструментами
+            services.AddGrpcReflection();
+
+            // Настройка MassTransit (всегда регистрируем для IPublishEndpoint)
+            // Используем RabbitMQ если настроен, иначе in-memory bus
+            var rabbitMqSettings = Configuration.GetSection("RabbitMqSettings").Get<RabbitMqSettings>();
+            bool useRabbitMq = rabbitMqSettings != null && !string.IsNullOrWhiteSpace(rabbitMqSettings.Host);
+
+            services.AddMassTransit(x =>
+            {
+                x.AddConsumer<Pcf.GivingToCustomer.Integration.Consumers.PartnerNotificationConsumer>();
+                x.AddConsumer<Pcf.GivingToCustomer.Integration.Consumers.PromoCodeReceivedFromPartnerConsumer>();
+
+                if (useRabbitMq)
+                {
+                    // Используем RabbitMQ если настроен
                     x.UsingRabbitMq((context, cfg) =>
                     {
                         var uri = $"rabbitmq://{rabbitMqSettings.Host}:{rabbitMqSettings.Port}{rabbitMqSettings.VirtualHost}";
@@ -57,12 +71,43 @@ namespace Pcf.GivingToCustomer.WebHost
                         {
                             h.Username(rabbitMqSettings.Username);
                             h.Password(rabbitMqSettings.Password);
+
+                            // Настройка таймаутов для предотвращения зависания при недоступности RabbitMQ
+                            h.Heartbeat(TimeSpan.FromSeconds(10));
+                            h.RequestedConnectionTimeout(TimeSpan.FromSeconds(10));
                         });
 
                         cfg.ConfigureEndpoints(context);
+
+                        // Настройка retry политики для работы без RabbitMQ (не блокирует запуск)
+                        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                     });
-                });
-            }
+                }
+                else
+                {
+                    // Используем in-memory bus для разработки без RabbitMQ
+                    x.UsingInMemory((context, cfg) =>
+                    {
+                        cfg.ConfigureEndpoints(context);
+                    });
+                }
+            });
+
+            // Настройка MassTransit Hosted Service
+            services.Configure<MassTransitHostOptions>(options =>
+            {
+                if (useRabbitMq)
+                {
+                    // Не блокировать запуск при недоступности RabbitMQ
+                    options.WaitUntilStarted = false;
+                    options.StartTimeout = TimeSpan.FromSeconds(5);
+                }
+                else
+                {
+                    // In-memory bus запускается мгновенно
+                    options.WaitUntilStarted = true;
+                }
+            });
 
             // HTTP клиент для микросервиса предпочтений
             services.AddHttpClient<IPreferencesGateway, PreferencesGateway>(client =>
@@ -77,16 +122,24 @@ namespace Pcf.GivingToCustomer.WebHost
                 x.UseLazyLoadingProxies();
             });
 
-            services.AddOpenApiDocument(options =>
-            {
-                options.Title = "PromoCode Factory Giving To Customer API Doc";
-                options.Version = "1.0";
-            });
+            // Настройка OpenAPI/Swagger
+            // Примечание: RuntimeBinderException может возникать при генерации документации
+            // Это не критично и не влияет на работу API
+                   services.AddOpenApiDocument(options =>
+                   {
+                       options.Title = "PromoCode Factory Giving To Customer API Doc";
+                       options.Version = "1.0";
+                       // Примечание: RuntimeBinderException может возникать при генерации документации
+                       // Это не критично и не влияет на работу API
+                   });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer)
         {
+            // Middleware для логирования ошибок (должен быть первым)
+            app.UseMiddleware<Pcf.GivingToCustomer.WebHost.Middleware.ErrorLoggingMiddleware>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -102,6 +155,7 @@ namespace Pcf.GivingToCustomer.WebHost
                 x.DocExpansion = "list";
             });
 
+            // Включаем HTTPS редирект для перенаправления HTTP на HTTPS
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -109,6 +163,13 @@ namespace Pcf.GivingToCustomer.WebHost
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                // Настройка gRPC endpoints
+                endpoints.MapGrpcService<Pcf.GivingToCustomer.WebHost.Services.CustomersGrpcService>();
+                // Включаем Server Reflection для работы с grpcurl (только для Development)
+                if (env.IsDevelopment())
+                {
+                    endpoints.MapGrpcReflectionService();
+                }
             });
 
             // Инициализация базы данных

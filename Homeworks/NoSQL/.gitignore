@@ -201,3 +201,7 @@ FodyWeavers.xsd
 .idea/
 *.sln.iml
 
+
+## Error logs
+errors/
+**/errors/
