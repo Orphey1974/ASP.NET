@@ -8,7 +8,7 @@
 
 ## 0. Описание системы и бизнес-процессов
 
-**Назначение Яндекс.Такси:**  
+**Назначение Яндекс.Такси:**
 Платформа для заказа такси, построения маршрутов, расчета стоимости, подбора водителя, проведения оплаты и отправки уведомлений.
 
 **Ключевой процесс — оформление заказа:**
@@ -59,15 +59,15 @@
 ```mermaid
 sequenceDiagram
     participant Client
-    participant API_GW as API Gateway
-    participant UserS as UserService
-    participant LocationS as LocationService
-    participant OrderS as OrderService
-    participant TariffS as TariffRouteService
-    participant MatchS as MatchingService
-    participant DriverS as DriverService
-    participant PayS as PaymentService
-    participant NotifS as NotificationService
+    participant API_GW as "API Gateway"
+    participant UserS as "UserService"
+    participant LocationS as "LocationService"
+    participant OrderS as "OrderService"
+    participant TariffS as "TariffRouteService"
+    participant MatchS as "MatchingService"
+    participant DriverS as "DriverService"
+    participant PayS as "PaymentService"
+    participant NotifS as "NotificationService"
 
     Client->>API_GW: 1. Создать заказ (REST)
     API_GW->>UserS: 2. Проверка пользователя (gRPC)
@@ -79,7 +79,7 @@ sequenceDiagram
     TariffS-->>OrderS: route, cost, duration
     OrderS-->>MatchS: 5. Поиск водителя (Kafka, async)
     MatchS->>DriverS: 7. Проверка статуса водителей (gRPC)
-    DriverS-->>MatchS: List<driverId>
+    DriverS-->>MatchS: List driverId
     OrderS->>PayS: 8. Авторизация платежа (REST)
     PayS-->>OrderS: paymentStatus, txnId
     OrderS-->>NotifS: 6,9. Уведомления (RabbitMQ, async)
@@ -120,29 +120,29 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-  subgraph Phase1["До миграции"]
-    C1[Client] --> GW1[API Gateway]
-    GW1 --> M1[OrderService Монолит<br/>содержит логику тарификации]
-  end
-  
-  subgraph Phase2["Во время миграции - Strangler Facade"]
-    C2[Client] --> GW2[API Gateway/Facade<br/>Feature Toggle]
-    GW2 -->|90% трафика| M2[OrderService Монолит<br/>старый код]
-    GW2 -.->|10% трафика| T2[TariffRouteService<br/>новый микросервис]
-  end
-  
-  subgraph Phase3["После миграции"]
-    C3[Client] --> GW3[API Gateway]
-    GW3 --> N3[OrderService<br/>без логики тарификации]
-    N3 --> T3[TariffRouteService<br/>вся логика перенесена]
-    M3[Старый монолит<br/>Deprecated/Removed]
-    style M3 fill:#ffcccc,stroke:#e67e22,stroke-width:2px
-  end
-  
-  style T2 fill:#d4edda,stroke:#28a745
-  style T3 fill:#d4edda,stroke:#28a745
-  style M1 fill:#fff3cd,stroke:#ffc107
-  style M2 fill:#fff3cd,stroke:#ffc107
+    subgraph Phase1["До миграции"]
+        C1[Client] --> GW1["API Gateway"]
+        GW1 --> M1["OrderService Монолит<br/>содержит логику тарификации"]
+    end
+
+    subgraph Phase2["Во время миграции - Strangler Facade"]
+        C2[Client] --> GW2["API Gateway/Facade<br/>Feature Toggle"]
+        GW2 -->|"90% трафика"| M2["OrderService Монолит<br/>старый код"]
+        GW2 -.->|"10% трафика"| T2["TariffRouteService<br/>новый микросервис"]
+    end
+
+    subgraph Phase3["После миграции"]
+        C3[Client] --> GW3["API Gateway"]
+        GW3 --> N3["OrderService<br/>без логики тарификации"]
+        N3 --> T3["TariffRouteService<br/>вся логика перенесена"]
+        M3["Старый монолит<br/>Deprecated/Removed"]
+        style M3 fill:#ffcccc,stroke:#e67e22,stroke-width:2px
+    end
+
+    style T2 fill:#d4edda,stroke:#28a745
+    style T3 fill:#d4edda,stroke:#28a745
+    style M1 fill:#fff3cd,stroke:#ffc107
+    style M2 fill:#fff3cd,stroke:#ffc107
 ```
 
 ### 3.4. Ключевые фрагменты реализации
@@ -172,31 +172,31 @@ public class TariffRouteFacade
             if (useNewService)
             {
                 _logger.LogInformation(
-                    "Routing to new TariffRouteService for user {UserId}", 
+                    "Routing to new TariffRouteService for user {UserId}",
                     request.UserId);
-                    
+
                 return await _newMicroservice.CalculateRouteAndPriceAsync(request);
             }
             else
             {
                 _logger.LogInformation(
-                    "Routing to monolith OrderService for user {UserId}", 
+                    "Routing to monolith OrderService for user {UserId}",
                     request.UserId);
-                    
+
                 return await _monolithService.CalculateRouteAndPriceAsync(request);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating route and price");
-            
+
             // Fallback на монолит в случае ошибки нового сервиса
             if (useNewService)
             {
                 _logger.LogWarning("Falling back to monolith");
                 return await _monolithService.CalculateRouteAndPriceAsync(request);
             }
-            
+
             throw;
         }
     }
@@ -236,7 +236,7 @@ public class TariffRouteController : ControllerBase
         [FromBody] TariffCalculationRequest request)
     {
         var cacheKey = $"route:{request.PickupLocation}:{request.DropoffLocation}";
-        
+
         // 1. Проверка кэша для популярных маршрутов
         var cachedResult = await _cache.GetStringAsync(cacheKey);
         if (cachedResult != null)
@@ -348,7 +348,7 @@ paths:
                 $ref: '#/components/schemas/TariffCalculationResponse'
               example:
                 route:
-                  points: 
+                  points:
                     - { latitude: 55.751244, longitude: 37.618423 }
                     - { latitude: 55.755826, longitude: 37.617300 }
                   distance: 8.5
@@ -513,7 +513,7 @@ components:
 
 Экспертная оценка показывает высокие баллы (8-10/10) по всем ключевым критериям, что подтверждает эффективность данного подхода для крупных распределенных систем.
 
-**Итоговая рекомендация:**  
+**Итоговая рекомендация:**
 Паттерн Strangler следует применять для миграции функциональных блоков с четкими границами, высокой нагрузкой и требованиями к непрерывной работе. Успешная реализация требует инвестиций в инфраструктуру (API Gateway, Feature Toggle, мониторинг), но окупается снижением рисков и плавным переходом к микросервисной архитектуре.
 
 ---
@@ -543,6 +543,6 @@ components:
 
 ---
 
-**Дата создания**: 11 ноября 2025  
-**Автор**: Архитектор микросервисных решений  
+**Дата создания**: 11 ноября 2025
+**Автор**: Архитектор микросервисных решений
 **Версия документа**: 1.0
