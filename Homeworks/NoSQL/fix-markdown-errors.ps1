@@ -2,13 +2,14 @@
 # Author: AI Assistant
 # Description: Automatically fixes common markdown formatting issues
 
-Clear-Host
 param(
     [string]$Path = ".",
-    [switch]$Recursive = $false,
-    [switch]$DryRun = $false,
-    [switch]$Verbose = $false
+    [switch]$Recursive,
+    [switch]$DryRun,
+    [switch]$Verbose
 )
+
+Clear-Host
 
 # Logging function
 function Write-Log {
