@@ -45,18 +45,18 @@
 
 ### Детальная таблица взаимодействия
 
-| Шаг | Инициатор             | Получатель            | Описание действия                          | Способ взаимодействия  | Передаваемые данные                                 | Ожидаемый ответ                 |
-| --- | --------------------- | --------------------- | ------------------------------------------ | ---------------------- | --------------------------------------------------- | ------------------------------- |
-| 1   | Клиентское приложение | API Gateway           | Запрос на создание заказа                  | Синхронный (REST/HTTP) | userId, pickupLocation, dropoffLocation, tariffType | orderId, status, estimatedCost  |
-| 2   | API Gateway           | UserService           | Проверка аутентификации и статуса          | Синхронный (gRPC)      | userId, authToken                                   | userProfile, isActive           |
-| 3   | API Gateway           | LocationService       | Получение текущих координат                | Синхронный (gRPC)      | userId                                              | latitude, longitude, accuracy   |
-| 4   | OrderService          | TariffRouteService    | Запрос расчета маршрута и стоимости        | Синхронный (REST/HTTP) | pickupCoords, dropoffCoords, tariffType             | route, distance, duration, cost |
-| 5   | OrderService          | MatchingService       | Запрос на поиск доступного водителя        | Асинхронный (Kafka)    | orderId, location, tariffType                       | Асинхронное подтверждение       |
-| 6   | OrderService          | NotificationService   | Уведомление о создании заказа              | Асинхронный (RabbitMQ) | orderId, userId, status                             | Асинхронное подтверждение       |
-| 7   | MatchingService       | DriverService         | Проверка статуса и геолокации водителей    | Синхронный (gRPC)      | location, radius, tariffType                        | List<driverId>, availability    |
-| 8   | OrderService          | PaymentService        | Предварительная авторизация платежа        | Синхронный (REST/HTTP) | orderId, userId, amount                             | paymentStatus, transactionId    |
-| 9   | OrderService          | NotificationService   | Отправка уведомлений о назначении водителя | Асинхронный (RabbitMQ) | orderId, driverId, userId, ETA                      | Асинхронное подтверждение       |
-| 10  | NotificationService   | Пользователь/Водитель | Доставка Push/SMS уведомлений              | Асинхронный (FCM/APNS) | message, deviceToken                                | deliveryStatus                  |
+| Шаг  | Инициатор             | Получатель             | Описание действия                           | Способ взаимодействия      | Передаваемые данные                                     | Ожидаемый ответ                   |
+|------|-----------------------|------------------------|---------------------------------------------|----------------------------|---------------------------------------------------------|------------------------------------|
+| 1    | Клиентское приложение | API Gateway            | Запрос на создание заказа                   | Синхронный (REST/HTTP)     | userId, pickupLocation, dropoffLocation, tariffType     | orderId, status, estimatedCost     |
+| 2    | API Gateway           | UserService            | Проверка аутентификации и статуса           | Синхронный (gRPC)          | userId, authToken                                       | userProfile, isActive              |
+| 3    | API Gateway           | LocationService        | Получение текущих координат                 | Синхронный (gRPC)          | userId                                                  | latitude, longitude, accuracy      |
+| 4    | OrderService          | TariffRouteService     | Запрос расчета маршрута и стоимости         | Синхронный (REST/HTTP)     | pickupCoords, dropoffCoords, tariffType                 | route, distance, duration, cost    |
+| 5    | OrderService          | MatchingService        | Поиск доступного водителя                   | Асинхронный (Kafka)        | orderId, location, tariffType                           | Асинхронное подтверждение          |
+| 6    | OrderService          | NotificationService    | Уведомление о создании заказа               | Асинхронный (RabbitMQ)     | orderId, userId, status                                 | Асинхронное подтверждение          |
+| 7    | MatchingService       | DriverService          | Проверка статуса и геолокации водителей     | Синхронный (gRPC)          | location, radius, tariffType                            | List<driverId>, availability       |
+| 8    | OrderService          | PaymentService         | Предварительная авторизация платежа         | Синхронный (REST/HTTP)     | orderId, userId, amount                                 | paymentStatus, transactionId       |
+| 9    | OrderService          | NotificationService    | Уведомление о назначении водителя           | Асинхронный (RabbitMQ)     | orderId, driverId, userId, ETA                          | Асинхронное подтверждение          |
+| 10   | NotificationService   | Пользователь/Водитель  | Доставка Push/SMS уведомлений               | Асинхронный (FCM/APNS)     | message, deviceToken                                    | deliveryStatus                     |
 
 ### Последовательность вызовов в процессе создания заказа (Mermaid диаграмма):
 
