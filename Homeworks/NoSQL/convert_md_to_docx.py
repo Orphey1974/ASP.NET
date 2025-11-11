@@ -117,12 +117,36 @@ def convert_md_to_docx(md_file_path, output_dir=None):
         if isinstance(md_content, bytes):
             md_content = md_content.decode('utf-8')
 
+        # Предобработка: удаляем пустые строки внутри таблиц
+        # Таблицы в Markdown должны быть без пустых строк между строками
+        lines = md_content.split('\n')
+        processed_lines = []
+        in_table = False
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            # Проверяем, является ли строка частью таблицы
+            is_table_separator = stripped.startswith('|') and '---' in stripped
+            is_table_row = stripped.startswith('|') and not is_table_separator
+
+            if is_table_row or is_table_separator:
+                in_table = True
+                processed_lines.append(line)
+            elif in_table and stripped == '':
+                # Пропускаем пустые строки внутри таблицы
+                continue
+            else:
+                in_table = False
+                processed_lines.append(line)
+
+        md_content = '\n'.join(processed_lines)
+
         md = markdown.Markdown(
             extensions=[
-                'extra',
-                'codehilite',
-                'tables',
-                'toc',
+                'extra',       # Дополнительные возможности (таблицы, fenced code blocks)
+                'codehilite',  # Подсветка кода
+                'tables',      # Таблицы (обязательно!)
+                'toc',         # Оглавление
             ]
         )
         html_content = md.convert(md_content)
@@ -247,6 +271,7 @@ def convert_md_to_docx(md_file_path, output_dir=None):
                     )
 
                 if is_mermaid and diagram_code:
+                    # Добавляем заголовок для Mermaid диаграммы
                     heading = doc.add_paragraph("Диаграмма Mermaid")
                     heading.style.font.name = 'Arial'
                     heading.style.font.bold = True
@@ -254,51 +279,115 @@ def convert_md_to_docx(md_file_path, output_dir=None):
 
                     clean_diagram_code = diagram_code.strip()
                     lines = clean_diagram_code.split('\n')
+                    # Удаляем первую строку, если она содержит только "mermaid"
                     if lines and lines[0].lower().strip().startswith('mermaid'):
                         clean_diagram_code = '\n'.join(lines[1:]).strip()
 
-                    code_lines = clean_diagram_code.split('\n') if clean_diagram_code else []
+                    # Удаляем пустые строки в начале и конце
+                    clean_diagram_code = clean_diagram_code.strip()
 
-                    if code_lines:
-                        table = doc.add_table(rows=1, cols=1)
-                        table.style = 'Light Grid Accent 1'
-                        cell = table.rows[0].cells[0]
+                    # Пытаемся получить изображение диаграммы через API
+                    image_added = False
+                    try:
+                        import base64
+                        import requests
+                        from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-                        para_format = cell.paragraphs[0].paragraph_format
-                        para_format.left_indent = Inches(0.1)
-                        para_format.right_indent = Inches(0.1)
-                        para_format.space_before = Pt(6)
-                        para_format.space_after = Pt(6)
+                        # Кодируем код диаграммы в base64 для API
+                        diagram_base64 = base64.urlsafe_b64encode(
+                            clean_diagram_code.encode('utf-8')).decode('utf-8')
 
-                        shading_elm = parse_xml(
-                            r'<w:shd {} w:fill="F5F5F5"/>'.format(
-                                nsdecls('w')))
-                        cell._element.get_or_add_tcPr().append(shading_elm)
+                        # Используем mermaid.ink API для генерации изображения
+                        api_url = f"https://mermaid.ink/img/{diagram_base64}"
 
-                        for i, line in enumerate(code_lines):
-                            line_stripped = line.rstrip()
+                        print(f"   Попытка загрузки изображения диаграммы...")
+                        response = requests.get(api_url, timeout=10)
 
-                            if i == 0:
-                                p = cell.paragraphs[0]
-                                if p.runs:
-                                    p.clear()
-                                run = p.add_run(line_stripped)
-                            else:
-                                p = cell.add_paragraph()
-                                run = p.add_run(line_stripped)
+                        if response.status_code == 200:
+                            # Сохраняем изображение во временный файл
+                            import tempfile
+                            temp_img = tempfile.NamedTemporaryFile(
+                                suffix='.png', delete=False)
+                            temp_img.write(response.content)
+                            temp_img.close()
+                            temp_img_path = temp_img.name
 
-                            run.font.name = 'Courier New'
-                            run.font.size = Pt(9)
+                            # Добавляем изображение в документ
+                            para = doc.add_paragraph()
+                            para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                            run = para.add_run()
+                            run.add_picture(temp_img_path, width=Inches(6))
+                            image_added = True
+                            print(f"   ✓ Изображение диаграммы добавлено")
 
-                        note_text = (
-                            "Примечание: Для визуализации диаграммы используйте "
-                            "редакторы с поддержкой Mermaid (VS Code с расширением, "
-                            "draw.io, или онлайн-редакторы mermaid.live).")
-                        note = doc.add_paragraph(note_text)
-                        note.style.font.name = 'Arial'
-                        note.style.font.italic = True
-                        note.style.font.size = Pt(9)
-                        note.style.font.color.rgb = RGBColor(128, 128, 128)
+                            # Удаляем временный файл
+                            try:
+                                os.unlink(temp_img_path)
+                            except:
+                                pass
+                    except ImportError:
+                        print(f"   ⚠️  Библиотека requests не установлена, пропускаю визуализацию")
+                    except Exception as e:
+                        print(f"   ⚠️  Не удалось загрузить изображение: {e}")
+
+                    # Если изображение не удалось добавить, показываем код
+                    if not image_added:
+                        # Удаляем пустые строки в середине, но сохраняем структуру
+                        code_lines = [line for line in clean_diagram_code.split('\n') if line.strip() or line == '']
+                        # Если все строки пустые, используем оригинальный код
+                        if not any(line.strip() for line in code_lines):
+                            code_lines = clean_diagram_code.split('\n')
+
+                        if code_lines:
+                            # Создаем таблицу для отображения кода диаграммы
+                            table = doc.add_table(rows=1, cols=1)
+                            table.style = 'Light Grid Accent 1'
+                            cell = table.rows[0].cells[0]
+
+                            para_format = cell.paragraphs[0].paragraph_format
+                            para_format.left_indent = Inches(0.1)
+                            para_format.right_indent = Inches(0.1)
+                            para_format.space_before = Pt(6)
+                            para_format.space_after = Pt(6)
+
+                            shading_elm = parse_xml(
+                                r'<w:shd {} w:fill="F5F5F5"/>'.format(
+                                    nsdecls('w')))
+                            cell._element.get_or_add_tcPr().append(shading_elm)
+
+                            # Добавляем код построчно
+                            for i, line in enumerate(code_lines):
+                                line_stripped = line.rstrip()
+
+                                # Добавляем даже пустые строки для сохранения структуры
+                                if i == 0:
+                                    p = cell.paragraphs[0]
+                                    if p.runs:
+                                        p.clear()
+                                    if line_stripped:
+                                        run = p.add_run(line_stripped)
+                                        run.font.name = 'Courier New'
+                                        run.font.size = Pt(9)
+                                else:
+                                    p = cell.add_paragraph()
+                                    if line_stripped:
+                                        run = p.add_run(line_stripped)
+                                        run.font.name = 'Courier New'
+                                        run.font.size = Pt(9)
+
+                            # Добавляем примечание
+                            note_text = (
+                                "Примечание: Для визуализации диаграммы используйте "
+                                "редакторы с поддержкой Mermaid (VS Code с расширением, "
+                                "draw.io, или онлайн-редакторы mermaid.live).")
+                            note = doc.add_paragraph(note_text)
+                            note.style.font.name = 'Arial'
+                            note.style.font.italic = True
+                            note.style.font.size = Pt(9)
+                            note.style.font.color.rgb = RGBColor(128, 128, 128)
+
+                    # Добавляем отступ после диаграммы
+                    doc.add_paragraph()
                 else:
                     code_text = elem.get_text()
                     if code_text:
@@ -344,32 +433,61 @@ def convert_md_to_docx(md_file_path, output_dir=None):
 
             elif elem.name == 'table':
                 table_data = []
+                max_cols = 0
+
+                # Собираем данные таблицы
                 for tr in elem.find_all('tr'):
                     row = []
                     for td in tr.find_all(['td', 'th']):
-                        text = clean_text(td.get_text())
-                        row.append(text)
+                        # Получаем текст из ячейки, сохраняя структуру
+                        cell_text = td.get_text(separator=' ', strip=True)
+                        # Очищаем от лишних пробелов, но сохраняем содержимое
+                        cell_text = ' '.join(cell_text.split())
+                        row.append(cell_text)
+
                     if row:
+                        # Нормализуем количество колонок
+                        max_cols = max(max_cols, len(row))
                         table_data.append(row)
 
                 if table_data:
+                    # Нормализуем все строки до одинакового количества колонок
+                    for row in table_data:
+                        while len(row) < max_cols:
+                            row.append('')
+
+                    # Создаем таблицу в Word
                     table = doc.add_table(rows=len(table_data),
-                                          cols=len(table_data[0]))
+                                          cols=max_cols)
                     table.style = 'Light Grid Accent 1'
 
                     for i, row_data in enumerate(table_data):
                         for j, cell_text in enumerate(row_data):
-                            cell = table.rows[i].cells[j]
-                            cell.text = cell_text
-                            if i == 0:
-                                for paragraph in cell.paragraphs:
-                                    for run in paragraph.runs:
-                                        run.font.bold = True
-                                        run.font.name = 'Arial'
-                            else:
-                                for paragraph in cell.paragraphs:
-                                    for run in paragraph.runs:
-                                        run.font.name = 'Arial'
+                            if j < max_cols:
+                                cell = table.rows[i].cells[j]
+                                # Очищаем ячейку перед добавлением текста
+                                cell.text = ''
+                                # Добавляем текст с правильным форматированием
+                                p = cell.paragraphs[0]
+                                run = p.add_run(cell_text)
+
+                                # Заголовок таблицы (первая строка) - жирный
+                                if i == 0:
+                                    run.font.bold = True
+                                    run.font.name = 'Arial'
+                                    run.font.size = Pt(10)
+                                else:
+                                    run.font.name = 'Arial'
+                                    run.font.size = Pt(10)
+
+                                # Настройка выравнивания
+                                p.alignment = 1  # Left alignment
+
+                                # Настройка отступов в ячейке
+                                cell.vertical_alignment = 1  # Top alignment
+
+                    # Добавляем отступ после таблицы
+                    doc.add_paragraph()
 
             elif elem.name == 'hr':
                 pass
@@ -383,14 +501,105 @@ def convert_md_to_docx(md_file_path, output_dir=None):
             'blockquote', 'hr'
         ]
 
+        # Сначала обрабатываем все таблицы отдельно
+        all_tables = root.find_all('table')
+        processed_table_ids = set()
+        print(f"   Найдено таблиц в HTML: {len(all_tables)}")
+        for table_elem in all_tables:
+            # Проверяем, что таблица не вложена в другую таблицу
+            is_nested = False
+            for parent in table_elem.parents:
+                if parent.name == 'table':
+                    is_nested = True
+                    break
+            if not is_nested:
+                table_id = id(table_elem)
+                if table_id not in processed_table_ids:
+                    processed_table_ids.add(table_id)
+                    process_element(table_elem)
+
+        # Сначала обрабатываем все Mermaid диаграммы отдельно
+        all_pre_blocks = root.find_all('pre')
+        processed_pre_ids = set()
+        mermaid_count = 0
+
+        for pre_elem in all_pre_blocks:
+            code_elem = pre_elem.find('code')
+            if code_elem:
+                code_text = code_elem.get_text()
+                class_attr = code_elem.get('class', [])
+                if isinstance(class_attr, list):
+                    class_attr = ' '.join(class_attr)
+                else:
+                    class_attr = str(class_attr) if class_attr else ''
+
+                pre_text = pre_elem.get_text().lower()
+
+                has_mermaid_class = (
+                    'language-mermaid' in class_attr.lower() or
+                    'lang-mermaid' in class_attr.lower() or
+                    'mermaid' in class_attr.lower()
+                )
+                has_mermaid_syntax = (
+                    'flowchart' in code_text.lower() or
+                    'graph' in code_text.lower() or
+                    'sequencediagram' in code_text.lower() or
+                    'gantt' in code_text.lower() or
+                    'pie' in code_text.lower() or
+                    'statediagram' in code_text.lower()
+                )
+                has_mermaid_arrows = (
+                    ('-->' in code_text and '[' in code_text and ']' in code_text) or
+                    ('--->' in code_text)
+                )
+                is_mermaid = (
+                    has_mermaid_class or
+                    has_mermaid_syntax or
+                    has_mermaid_arrows or
+                    'mermaid' in pre_text
+                )
+
+                if is_mermaid:
+                    mermaid_count += 1
+                    # Проверяем, что блок не вложен в другой элемент
+                    is_nested = False
+                    for parent in pre_elem.parents:
+                        if parent.name in ['td', 'th', 'li', 'table']:
+                            is_nested = True
+                            break
+
+                    if not is_nested:
+                        pre_id = id(pre_elem)
+                        if pre_id not in processed_pre_ids:
+                            processed_pre_ids.add(pre_id)
+                            print(f"   Обработка Mermaid диаграммы #{mermaid_count}...")
+                            process_element(pre_elem)
+                            print(f"   ✓ Mermaid диаграмма #{mermaid_count} добавлена в документ")
+
+        print(f"   Найдено Mermaid диаграмм: {mermaid_count}, обработано: {len(processed_pre_ids)}")
+
+        # Затем обрабатываем остальные элементы
         all_elements = root.find_all(block_tags)
 
         processed_ids = set()
 
         for elem in all_elements:
+            # Пропускаем таблицы, так как они уже обработаны
+            if elem.name == 'table':
+                continue
+            # Пропускаем блоки pre с Mermaid, так как они уже обработаны
+            if elem.name == 'pre':
+                pre_id = id(elem)
+                if pre_id in processed_pre_ids:
+                    continue
+
             parent = elem.parent
             if parent:
-                if parent.name in ['li', 'td', 'th', 'thead', 'tbody', 'tr']:
+                # Пропускаем элементы внутри таблиц (они обрабатываются вместе с таблицей)
+                if parent.name in ['td', 'th', 'thead', 'tbody', 'tr', 'table']:
+                    continue
+                # Пропускаем элементы внутри списков (обрабатываются вместе со списком)
+                if parent.name in ['li']:
                     continue
                 parents_list = list(elem.parents)
                 if len(parents_list) > 3:
